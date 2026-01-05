@@ -1,0 +1,1 @@
+#import "../data/primitives.typ": motif, managed-motif, compute-motif, data-motif, content-motif
