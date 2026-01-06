@@ -41,6 +41,7 @@
           markdownlint-cli
           nodePackages.prettier
           nodejs
+          yarn
         ] ++ self.checks.${system}.pre-commit-check.enabledPackages;
 
         shellHook = ''
