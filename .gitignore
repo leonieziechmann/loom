@@ -1,0 +1,11 @@
+# Typst
+*.pdf
+.typst-data/
+.typst-cache/
+
+# Nix
+.direnv
+result
+
+# Pre Commit
+.pre-commit-config.yaml
