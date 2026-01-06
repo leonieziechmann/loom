@@ -17,29 +17,32 @@ Loom solves this by running your document logic multiple times. We call this the
 Every Loom component ("Motif") operates in two distinct phases.
 
 ### 1. Measure Phase
-* **Goal:** Calculate data and propagate signals.
-* **Input:** The current Context (`ctx`) and the signals from children (`children-data`).
-* **Output:** A tuple `(public, view)`.
-    * `public`: Data sent **up** to the parent (Signal).
-    * `view`: Data kept **local** for the drawing phase.
-* **Visuals:** No visual content is produced.
+
+- **Goal:** Calculate data and propagate signals.
+- **Input:** The current Context (`ctx`) and the signals from children (`children-data`).
+- **Output:** A tuple `(public, view)`.
+  - `public`: Data sent **up** to the parent (Signal).
+  - `view`: Data kept **local** for the drawing phase.
+- **Visuals:** No visual content is produced.
 
 ### 2. Draw Phase
-* **Goal:** Render the final component.
-* **Input:** Context, `public` data, `view` data, and the children's rendered content (`body`).
-* **Output:** The final Typst `content` (e.g., `block`, `text`).
-* **Behavior:** This phase only runs once, at the very end.
+
+- **Goal:** Render the final component.
+- **Input:** Context, `public` data, `view` data, and the children's rendered content (`body`).
+- **Output:** The final Typst `content` (e.g., `block`, `text`).
+- **Behavior:** This phase only runs once, at the very end.
 
 ## Data Flow Directions
 
 Loom strictly separates data flowing down the tree from data flowing up.
 
 ### Top-Down: The Scope (Context)
+
 Data flowing from a parent to its children is called **Scope**. This works like inherited variables.
 
-* **Mechanism:** A parent modifies the immutable `ctx` dictionary before its children are processed.
-* **Usage:** Configuration, themes, global flags.
-* **Example:** A `recipe` component sets a `scale-factor` in the scope. All nested `ingredient` components automatically see this factor.
+- **Mechanism:** A parent modifies the immutable `ctx` dictionary before its children are processed.
+- **Usage:** Configuration, themes, global flags.
+- **Example:** A `recipe` component sets a `scale-factor` in the scope. All nested `ingredient` components automatically see this factor.
 
 ```typ
 // Parent sets the scope
@@ -57,9 +60,9 @@ measure: (ctx, _) => {
 
 Data flowing from children to parents is called **Signals**. This is the unique feature of Loom.
 
-* **Mechanism:** When a child finishes its `measure` phase, it returns a data packet (Frame). The engine collects these packets and passes them to the parent's `measure` function as an array.
-* **Usage:** Aggregation, summaries, registration.
-* **Example:** `ingredient` components return their cost. The `recipe` parent sums them up to calculate the total price.
+- **Mechanism:** When a child finishes its `measure` phase, it returns a data packet (Frame). The engine collects these packets and passes them to the parent's `measure` function as an array.
+- **Usage:** Aggregation, summaries, registration.
+- **Example:** `ingredient` components return their cost. The `recipe` parent sums them up to calculate the total price.
 
 ```typ
 // Child (Ingredient)
@@ -79,8 +82,7 @@ measure: (ctx, children-data) => {
 Loom is a "fixed-point" engine. This means it doesn't just run twice; it runs **until the data stops changing**.
 
 1. **Iteration 1:** Loom collects initial signals.
-2. **Iteration 2:** Loom injects those signals into the context. Components might react to this (e.g., a "Buff" changes a "Stat"). This might produce *new* signals.
+2. **Iteration 2:** Loom injects those signals into the context. Components might react to this (e.g., a "Buff" changes a "Stat"). This might produce _new_ signals.
 3. **Iteration 3:** If the signals changed, Loom runs again.
 
 This loop continues until the output of a pass is identical to the input of the previous pass (Convergence) or the `max-passes` limit is reached.
-

@@ -10,7 +10,7 @@ These functions help you find specific child components within the `children-dat
 
 Returns a list of all immediate children matching the specific `kind`.
 
-* **Use Case:** You have a list of mixed content, but you only care about the "task" elements.
+- **Use Case:** You have a list of mixed content, but you only care about the "task" elements.
 
 ```typ
 #let tasks = query.select(children, "task")
@@ -18,9 +18,9 @@ Returns a list of all immediate children matching the specific `kind`.
 
 ### `query.find(children, kind)`
 
-Finds the *first* immediate child of a specific kind. Returns `none` if not found.
+Finds the _first_ immediate child of a specific kind. Returns `none` if not found.
 
-* **Use Case:** Looking for a specific configuration node or metadata element.
+- **Use Case:** Looking for a specific configuration node or metadata element.
 
 ```typ
 #let meta = query.find(children, "metadata")
@@ -31,7 +31,7 @@ Finds the *first* immediate child of a specific kind. Returns `none` if not foun
 
 Recursively traverses the tree to find all descendants of a specific kind, up to the specified depth.
 
-* **Use Case:** Your "Project" root needs to find all "Tasks", even if they are nested inside "Phases" or "Groups".
+- **Use Case:** Your "Project" root needs to find all "Tasks", even if they are nested inside "Phases" or "Groups".
 
 ```typ
 // Flatten the entire tree and get all tasks
@@ -42,7 +42,7 @@ Recursively traverses the tree to find all descendants of a specific kind, up to
 
 Filters children using a custom function `frame => bool`.
 
-* **Use Case:** Complex filtering logic.
+- **Use Case:** Complex filtering logic.
 
 ```typ
 // Find all tasks that cost more than 100
@@ -59,7 +59,7 @@ Once you have selected the relevant frames, you usually want to extract or calcu
 
 Sum up a numeric field from the signals of the provided children.
 
-* **Use Case:** Calculating totals (Price, Duration, Weight).
+- **Use Case:** Calculating totals (Price, Duration, Weight).
 
 ```typ
 #let total-cost = query.sum-signals(tasks, "cost")
@@ -69,7 +69,7 @@ Sum up a numeric field from the signals of the provided children.
 
 Extracts a specific field from the signal of each child, returning an array of values.
 
-* **Use Case:** Getting a list of all names or IDs.
+- **Use Case:** Getting a list of all names or IDs.
 
 ```typ
 #let names = query.pluck(tasks, "name")
@@ -80,7 +80,7 @@ Extracts a specific field from the signal of each child, returning an array of v
 
 Groups children into a dictionary based on a value in their signal.
 
-* **Use Case:** Grouping ingredients by category or tasks by status.
+- **Use Case:** Grouping ingredients by category or tasks by status.
 
 ```typ
 #let by-status = query.group-by(tasks, "status")

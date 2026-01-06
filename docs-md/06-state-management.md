@@ -16,12 +16,12 @@ Applies a list of operations to the `target` dictionary and returns the new, mod
 
 **Available Operations:**
 
-* `mutator.put(key, value)`: Sets a value (overwrites if exists).
-* `mutator.ensure(key, default)`: Sets a value only if the key is missing.
-* `mutator.update(key, fn)`: Modifies an existing value using a function `old => new`.
-* `mutator.remove(key)`: Deletes a key.
-* `mutator.merge(dict)`: Merges another dictionary at the current level.
-* `mutator.nest(key, sub_ops)`: Applies operations to a nested dictionary.
+- `mutator.put(key, value)`: Sets a value (overwrites if exists).
+- `mutator.ensure(key, default)`: Sets a value only if the key is missing.
+- `mutator.update(key, fn)`: Modifies an existing value using a function `old => new`.
+- `mutator.remove(key)`: Deletes a key.
+- `mutator.merge(dict)`: Merges another dictionary at the current level.
+- `mutator.nest(key, sub_ops)`: Applies operations to a nested dictionary.
 
 **Example: Updating a Config**
 

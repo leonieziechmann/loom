@@ -10,9 +10,9 @@ These guards validate the position of the current component within the document 
 
 ### `guards.assert-inside(ctx, ..ancestors)`
 
-Ensures that the component is nested within *at least one* of the specified ancestor kinds.
+Ensures that the component is nested within _at least one_ of the specified ancestor kinds.
 
-* **Use Case:** A "Task" must be inside a "Project" or "Phase".
+- **Use Case:** A "Task" must be inside a "Project" or "Phase".
 
 ```typ
 #(
@@ -25,9 +25,9 @@ Ensures that the component is nested within *at least one* of the specified ance
 
 ### `guards.assert-direct-parent(ctx, ..parents)`
 
-Stricter than `assert-inside`. Ensures that the *immediate* parent matches one of the specified kinds.
+Stricter than `assert-inside`. Ensures that the _immediate_ parent matches one of the specified kinds.
 
-* **Use Case:** A "TableRow" must be directly inside a "Table".
+- **Use Case:** A "TableRow" must be directly inside a "Table".
 
 ```typ
 #guards.assert-direct-parent(ctx, "table")
@@ -37,7 +37,7 @@ Stricter than `assert-inside`. Ensures that the *immediate* parent matches one o
 
 Ensures that the component is at the root level of the Loom tree (depth 0).
 
-* **Use Case:** Top-level managers like "Project" or "Dashboard".
+- **Use Case:** Top-level managers like "Project" or "Dashboard".
 
 ```typ
 #guards.assert-root(ctx)
@@ -47,7 +47,7 @@ Ensures that the component is at the root level of the Loom tree (depth 0).
 
 The inverse of `assert-inside`. Prevents nesting within specific components.
 
-* **Use Case:** Preventing a "PageHeader" from being used inside a "Footer".
+- **Use Case:** Preventing a "PageHeader" from being used inside a "Footer".
 
 ```typ
 #guards.assert-not-inside(ctx, "footer")
@@ -63,7 +63,7 @@ These guards validate the content of the `ctx` dictionary.
 
 Ensures that a specific key exists in the context.
 
-* **Use Case:** verifying that a required dependency (like a theme or configuration) has been injected by a parent.
+- **Use Case:** verifying that a required dependency (like a theme or configuration) has been injected by a parent.
 
 ```typ
 #guards.assert-has-key(ctx, "theme-color", msg: "Missing theme! Wrap this in a ThemeProvider.")
@@ -74,7 +74,7 @@ Ensures that a specific key exists in the context.
 
 Ensures that a context key exists AND matches one of the allowed values.
 
-* **Use Case:** Validating enum-like configurations.
+- **Use Case:** Validating enum-like configurations.
 
 ```typ
 #guards.assert-value(ctx, "status", "active", "pending", "done")

@@ -4,7 +4,7 @@ Loom is a meta-engine designed to handle complex data flows in Typst documents. 
 
 ## Installation
 
-*(Instructions to be added once the package is published)*
+_(Instructions to be added once the package is published)_
 
 ```typ
 #import "@preview/loom:0.1.0": construct-loom
