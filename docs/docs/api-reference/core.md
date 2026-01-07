@@ -16,7 +16,11 @@ The entry point for using Loom. It creates a secluded instance of the engine wit
 loom.construct-loom(key) -> dictionary
 ```
 
-### Arguments
+:::info
+**Why a unique key?** Loom uses Typst labels to track state. By providing a unique key like `<my-lib>`, you ensure that if a document uses two different libraries built on Loom, their components won't interfere with each other.
+:::
+
+### Parameters
 
 - **`key`**
   - **Type:** `label`
@@ -59,7 +63,7 @@ The runner function that executes the "Time Travel" loop. It should be used with
 #show: weave.with(..config)
 ```
 
-### Arguments
+### Parameters
 
 | Parameter                   | Type             | Default                               | Description                                                                                                                         |
 | --------------------------- | ---------------- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |

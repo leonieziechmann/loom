@@ -26,9 +26,7 @@ To keep your code clean and prevent namespace collisions, you should initialize 
 
 Create a file named `loom-wrapper.typ` (or `loomw.typ`) in your project root.
 
-### `loom-wrapper.typ`
-
-```typ
+```typ title="loom-wrapper.typ"
 #import "@preview/loom:0.1.0"
 #import loom: guards, mutator
 
@@ -62,9 +60,7 @@ Create a file named `loom-wrapper.typ` (or `loomw.typ`) in your project root.
 
 Now, in your main document (`main.typ`), you simply import your wrapper.
 
-### `main.typ`
-
-```typ
+```typ title="main.typ"
 #import "loom-wrapper.typ": *
 
 // Now you can use the tools directly
@@ -84,16 +80,14 @@ Now, in your main document (`main.typ`), you simply import your wrapper.
 
 If you want to copy-paste a complete setup, here is the minimal boilerplate:
 
-```typ
-// --- loom-wrapper.typ ---
+```typ title="loom-wrapper.typ"
 #import "@preview/loom:0.1.0"
 #let (weave, motif, ..) = loom.construct-loom(<app>)
 
 #let content-motif = motif.content
 ```
 
-```typ
-// --- main.typ ---
+```typ title="main.typ"
 #import "loom-wrapper.typ": *
 #show: weave.with()
 

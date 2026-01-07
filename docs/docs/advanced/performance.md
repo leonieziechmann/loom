@@ -36,8 +36,8 @@ The compilation time of a Loom document can be roughly estimated as:
 
 Loom runs the `measure` phase in a loop.
 
-- **Default:** 2 Passes (1 Measure + 1 Draw). Cost: ~2x standard Typst.
-- **Complex:** If you set `max-passes: 5`, your document compiles ~5x slower.
+- **Default:** 2 Passes (1 Measure + 1 Draw).
+- **Complex:** If you set `max-passes: 5`, loom takes ~2.5x longer.
 
 **Tip:** Keep `max-passes` as low as possible. Most documents only need 2 or 3 passes. Only increase it if you have deep dependency chains (e.g., A needs B, which needs C, which needs D).
 

@@ -12,7 +12,7 @@ Welcome! This section guides you through setting up the Loom engine and building
 
 To use Loom, you need a working installation of **Typst**.
 
-- **Typst CLI:** Version `0.11.0` or higher is recommended.
+- **Typst CLI:** Version `0.14.0` or higher is required.
 - **Editor:** We highly recommend [VS Code](https://code.visualstudio.com/) with the [Tinymist](https://marketplace.visualstudio.com/items?itemName=myriad-dreamin.tinymist) extension for live preview and autocompletion.
 
 ## The Learning Path

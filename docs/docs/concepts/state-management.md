@@ -119,13 +119,14 @@ When emitting signals in the `measure` phase, you often want to build a rich dat
 
 ## Available Operations
 
-| Operation              | Description                                                |
-| ---------------------- | ---------------------------------------------------------- |
-| `put(key, value)`      | Sets a value, overwriting if it exists.                    |
-| `ensure(key, default)` | Sets a value **only if** it is currently missing (`none`). |
-| `update(key, fn)`      | Transforms a value: `fn(old_value) => new_value`.          |
-| `remove(key)`          | Deletes a key.                                             |
-| `nest(key, ops)`       | Applies a batch of operations to a sub-dictionary.         |
-| `merge(dict)`          | Merges another dictionary into the current one.            |
+| Operation                     | Description                                                                     |
+| ----------------------------- | ------------------------------------------------------------------------------- |
+| `put(key, value)`             | Sets a value, overwriting if it exists.                                         |
+| `ensure(key, default)`        | Sets a value **only if** it is currently missing (`none`).                      |
+| `derive(key, value, default)` | Sets a value, deriving from dictionary if value is auto, with fallback default. |
+| `update(key, fn)`             | Transforms a value: `fn(old_value) => new_value`.                               |
+| `remove(key)`                 | Deletes a key.                                                                  |
+| `nest(key, ops)`              | Applies a batch of operations to a sub-dictionary.                              |
+| `merge(dict)`                 | Merges another dictionary into the current one.                                 |
 
 **Pro Tip:** `mutator` functions are pure. They never modify the original variable; they always return a new, modified copy.

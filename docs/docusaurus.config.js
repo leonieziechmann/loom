@@ -60,6 +60,19 @@ const config = {
     ],
   ],
 
+  themes: [
+    [
+      require.resolve("@easyops-cn/docusaurus-search-local"),
+      {
+        hashed: true,
+        language: ["en"],
+        indexDocs: true,
+        indexBlog: true,
+        docsRouteBasePath: "/docs",
+      },
+    ],
+  ],
+
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
@@ -71,7 +84,7 @@ const config = {
         respectPrefersColorScheme: true,
       },
       navbar: {
-        title: 'Loom',
+        title: 'Loom Documentation',
         logo: {
           alt: 'Loom Logo',
           src: 'img/logo.svg',

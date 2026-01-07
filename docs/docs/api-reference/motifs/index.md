@@ -89,10 +89,11 @@ motif.data(
 
 ### Parameters
 
-| Parameter     | Type       | Default         | Description                                                                                           |
-| ------------- | ---------- | --------------- | ----------------------------------------------------------------------------------------------------- |
-| **`name`**    | `str`      | _required_      | The name/kind of the data node.                                                                       |
-| **`measure`** | `function` | `(ctx) => none` | **Logic Phase.** `(ctx) => signal`. Returns the raw data payload. Note: It does not receive children. |
+| Parameter     | Type            | Default         | Description                                                                                           |
+| ------------- | --------------- | --------------- | ----------------------------------------------------------------------------------------------------- |
+| **`name`**    | `str`           | _required_      | The name/kind of the data node.                                                                       |
+| **`scope`**   | `(ctx) => dict` | `id`            | Optional context modification for children.                                                           |
+| **`measure`** | `function`      | `(ctx) => none` | **Logic Phase.** `(ctx) => signal`. Returns the raw data payload. Note: It does not receive children. |
 
 ---
 
@@ -109,7 +110,17 @@ motif.compute(
   measure: (ctx, children-data) => signal,
   body
 )
+
 ```
+
+### Parameters
+
+| Parameter     | Type            | Default        | Description                                                                                                            |
+| ------------- | --------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **`name`**    | `str` or `none` | `none`         | Optional name. If provided, it behaves like `motif.managed` (adding to path and wrapping in a Frame).                  |
+| **`scope`**   | `(ctx) => dict` | `id`           | **Provider.** A function that returns a modified context for its _children_.                                           |
+| **`measure`** | `function`      | `(..) => none` | **Logic Phase.** `(ctx, children) => signal`. Returns the raw data. Unlike `managed`, it does not return a view model. |
+| **`body`**    | `content`       | _required_     | The child content to process.                                                                                          |
 
 ---
 
@@ -128,3 +139,25 @@ motif.plain(
   body
 )
 ```
+
+:::warning
+
+Data Contract Unlike managed motifs, motif.plain does not automatically wrap your data. The signal returned by your measure function must strictly be:
+
+1. `none`
+2. A single Frame object (created via `loom.frame.new`)
+3. An array of Frame objects
+
+Returning raw data (like a string or dictionary) directly as a signal will cause a Data Contract Violation panic.
+
+:::
+
+### Parameters
+
+| Parameter     | Type            | Default                | Description                                                                                                                                                       |
+| ------------- | --------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`key`**     | `label`         | `<motif>`              | The internal metadata label used by the Loom engine to identify this block.                                                                                       |
+| **`scope`**   | `(ctx) => dict` | `id`                   | **Provider.** Explicitly defines the context passed to children.                                                                                                  |
+| **`measure`** | `function`      | `(..) => (none, none)` | **Logic Phase.** `(ctx, children) => (signal, view)`. Returns the component's public signal and internal view model. **Must return valid Frames for the signal.** |
+| **`draw`**    | `function`      | `(..) => body`         | **Render Phase.** `(ctx, signal, view, body) => content`. Direct control over the final output.                                                                   |
+| **`body`**    | `content`       | _required_             | The child content to process.                                                                                                                                     |

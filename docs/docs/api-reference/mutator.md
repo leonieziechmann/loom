@@ -6,22 +6,34 @@ sidebar_position: 5
 
 **Immutable State Updates**
 
-The `mutator` module provides a functional, transaction-based API for modifying Typst dictionaries. Because Typst data structures are immutable, "modifying" a dictionary actually means creating a new copy with changes applied.
+The `mutator` module provides a functional, transaction-based API for modifying Typst dictionaries.
 
-This module makes complex, nested updates clean and readable, avoiding deep nesting of `dict.insert` or `+` operators.
+:::info Why use a Mutator?
+While Typst variables are mutable within their scope, updating deeply nested structures often requires verbose "copy-modify-assign" patterns. The Mutator API abstracts this complexity, allowing you to describe a **transaction** of changes cleanly without manually reconstructing the dictionary hierarchy or writing repetitive update logic.
+:::
 
 ## The Batch Transaction
 
-The core concept is the `batch` function, which applies a sequence of operations to a target dictionary.
+The core concept is the `batch` function, which applies a sequence of operations to a target dictionary and returns the new state.
+
+### `batch`
+
+Applies a list of operations to a target dictionary.
 
 ```typ
-loom.mutator.batch(target, ops) -> dictionary
+loom.mutator.batch(target, ops)
 ```
 
-- **`target`** (`dictionary` | `none`): The starting state. If `none`, starts with `(:)`.
-- **`ops`** (`array<function>`): A list of operations (created by `put`, `update`, etc.) to apply sequentially.
+| Parameter | Type         | Default  | Description                                                                                       |
+| --------- | ------------ | -------- | ------------------------------------------------------------------------------------------------- |
+| `target`  | `dictionary` | `none`   | Required                                                                                          |
+| `ops`     | `array`      | Required | A block or array of operation functions (created by `put`, `update`, etc.) to apply sequentially. |
 
-### Example
+:::tip Syntax Sugar
+You can pass a code block `{ ... }` as the `ops` argument. Inside this block, simply call the operation functions. Typst automatically collects these calls into an array for the batch processor.
+:::
+
+**Example:**
 
 ```typ
 #import "@preview/loom:0.1.0": mutator
@@ -30,20 +42,20 @@ loom.mutator.batch(target, ops) -> dictionary
 
 #let new-state = mutator.batch(state, {
   import mutator: *
-
   put("user", "Admin")
   update("count", c => c + 1)
-  put("status", "active")
 })
-
-// Result: (count: 1, user: "Admin", status: "active")
 ```
 
 ---
 
 ## Operations
 
-These functions return **Operation Objects** (functions) that are passed to `batch`. They are not meant to be called on their own.
+These functions generate **Operation Objects**. They define _what_ to do, but the change only happens when processed by `batch`.
+
+:::warning Context Usage
+These functions are not standalone. They must be used inside the `ops` list passed to a `batch` or `nest` call.
+:::
 
 ### `put`
 
@@ -53,13 +65,41 @@ Sets a key to a specific value. Overwrites the value if the key already exists.
 put(key, value)
 ```
 
+| Parameter | Type  | Default  | Description                     |
+| --------- | ----- | -------- | ------------------------------- |
+| `key`     | `str` | Required | The dictionary key to set.      |
+| `value`   | `any` | Required | The value to assign to the key. |
+
 ### `ensure`
 
-Sets a value **only if the key is missing** (or `none`). Useful for safely setting defaults without overwriting existing data.
+Sets a value **only if the key is missing** (or `none`).
 
 ```typ
 ensure(key, default-value)
 ```
+
+| Parameter       | Type  | Default  | Description                                    |
+| --------------- | ----- | -------- | ---------------------------------------------- |
+| `key`           | `str` | Required | The dictionary key to check.                   |
+| `default-value` | `any` | Required | The value to assign if the key does not exist. |
+
+### `derive`
+
+Sets a value, inheriting the previous one if the new value is `auto`.
+
+- If `value` is `auto`: uses the current state value.
+- If current state is missing (and value is `auto`): uses `default`.
+- If `value` is set: uses that value.
+
+```typ
+derive(key, value, default: none)
+```
+
+| Parameter | Type  | Default  | Description                                                                      |
+| --------- | ----- | -------- | -------------------------------------------------------------------------------- |
+| `key`     | `str` | Required | The dictionary key to update.                                                    |
+| `value`   | `any` | Required | The new value (or `auto`).                                                       |
+| `default` | `any` | `none`   | Fallback value if `value` is `auto` and the key is missing in the current state. |
 
 ### `update`
 
@@ -69,7 +109,10 @@ Transforms an existing value using a callback function.
 update(key, callback)
 ```
 
-- **`callback`**: `(current-value) => new-value`
+| Parameter  | Type       | Default  | Description                                                                            |
+| ---------- | ---------- | -------- | -------------------------------------------------------------------------------------- |
+| `key`      | `str`      | Required | The dictionary key to update.                                                          |
+| `callback` | `function` | Required | A function `(current) => new` that receives the current value and returns the new one. |
 
 ### `remove`
 
@@ -79,13 +122,25 @@ Deletes a key from the dictionary.
 remove(key)
 ```
 
+| Parameter | Type  | Default  | Description                   |
+| --------- | ----- | -------- | ----------------------------- |
+| `key`     | `str` | Required | The dictionary key to remove. |
+
 ### `merge`
 
-Merges another dictionary into the current state (shallow merge).
+Merges another dictionary into the current state.
 
 ```typ
 merge(other-dictionary)
 ```
+
+| Parameter          | Type         | Default  | Description                                     |
+| ------------------ | ------------ | -------- | ----------------------------------------------- |
+| `other-dictionary` | `dictionary` | Required | The dictionary to merge into the current state. |
+
+:::warning Shallow Merge
+This operation performs a **shallow merge**. If you need to merge deeply nested dictionaries, use `nest` combined with individual operations, or multiple `nest` calls.
+:::
 
 ---
 
@@ -93,14 +148,20 @@ merge(other-dictionary)
 
 ### `nest`
 
-Applies a batch of operations to a sub-dictionary.
-If the key does not exist (or is not a dictionary), it initializes an empty dictionary at that location first.
+Applies a batch of operations to a sub-dictionary (a child key).
 
 ```typ
 nest(key, sub-ops)
 ```
 
-- **`sub-ops`**: An array of operations to apply to the child dictionary.
+| Parameter | Type    | Default  | Description                                                                                     |
+| --------- | ------- | -------- | ----------------------------------------------------------------------------------------------- |
+| `key`     | `str`   | Required | The key of the child dictionary to modify.                                                      |
+| `sub-ops` | `array` | Required | A new list of operations (`put`, `update`, etc.) to apply specifically to the child dictionary. |
+
+:::note Auto-Initialization
+If `key` does not exist in the parent, or if the value at `key` is `none`, `nest` will automatically initialize it as an empty dictionary `(:)` before applying the operations.
+:::
 
 **Example: Deeply Nested Config**
 
@@ -116,15 +177,9 @@ nest(key, sub-ops)
     put("accent", blue)
   })
 
-  // Create new nested section
+  // Create new nested section automatically
   nest("meta", {
     put("author", "Me")
   })
 })
-
-// Result:
-// (
-//   theme: (dark: true, accent: blue),
-//   meta: (author: "Me")
-// )
 ```
