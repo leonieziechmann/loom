@@ -42,6 +42,7 @@ Create a file named `loom-wrapper.typ` (or `loomw.typ`) in your project root.
 
 // The Component Constructors
 #let managed-motif = motif.managed
+#let compute-motif = motif.compute
 #let content-motif = motif.content
 #let data-motif = motif.data
 #let motif = motif.plain

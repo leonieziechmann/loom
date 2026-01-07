@@ -32,6 +32,7 @@ const config = {
   deploymentBranch: 'gh-pages',
 
   markdown: {
+    mermaid: true,
     hooks: {
       onBrokenMarkdownLinks: 'warn',
     }
@@ -71,6 +72,7 @@ const config = {
         docsRouteBasePath: "/docs",
       },
     ],
+    '@docusaurus/theme-mermaid'
   ],
 
   themeConfig:

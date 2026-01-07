@@ -18,13 +18,13 @@ Imagine you are writing a receipt. In standard Typst, if you want a list of item
 
 ```typ
 // 1. Define Data separately
-let items = (
+#let items = (
   (name: "Apple", price: 1.2),
   (name: "Banana", price: 0.8),
 )
 
 // 2. Calculate Total separately
-let total = items.map(i => i.price).sum()
+#let total = items.map(i => i.price).sum()
 
 // 3. Render Loop
 #table(..items.map(i => [ #i.name: #i.price ]))
@@ -138,12 +138,12 @@ Loom provides the `loom.query` module to make this easier. It works similarly to
 // Inside Parent measure(ctx, children-signals)
 
 // 1. Summing a specific field
-let total = loom.query.sum-signals(children-signals, "price")
+#let total = loom.query.sum-signals(children-signals, "price")
 
 // 2. Finding specific children
-let apples = loom.query.where(children-signals, s => s.name == "Apple")
+#let apples = loom.query.where(children-signals, s => s.name == "Apple")
 
 // 3. Deep Collection (Recursive)
 // Useful if your items are nested inside other containers (like groups or divs)
-let all-items = loom.query.collect(children-signals, "price")
+#let all-items = loom.query.collect(children-signals, "price")
 ```

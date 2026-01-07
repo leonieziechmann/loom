@@ -99,7 +99,7 @@ You can use `mutator` to clean up raw data (e.g., from a JSON file or CSV) befor
 When emitting signals in the `measure` phase, you often want to build a rich data packet.
 
 ```typ
-#(measure: (ctx, children-signals) => {
+measure: (ctx, children-signals) => {
   // Start with a base signal
   let signal = (source: "section")
 
@@ -114,7 +114,7 @@ When emitting signals in the `measure` phase, you often want to build a rich dat
   })
 
   (final-signal, none)
-})
+}
 ```
 
 ## Available Operations

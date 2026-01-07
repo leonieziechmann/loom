@@ -44,18 +44,18 @@ The most robust way to use Scope is to handle three cases at once:
 2. **Inherit:** The user passed `auto`, so we look up the tree.
 3. **Default:** No one defined it, so we fallback to a safe value (`black`).
 
-Loom makes this easy with `loom.context.scope`.
+Loom makes this easy with `loom.core.scope`.
 
 ```typ
 #import "@preview/loom:0.1.0": *
-#let (motif, weave, context) = construct-loom(<my-lib>)
+#let (motif, weave, ..) = construct-loom(<my-lib>)
 
 // THE COMPONENT
 #let my-button(label, color: auto) = motif(
   // 1. THE SCOPE PHASE (Logic)
   // We determine the final value BEFORE we draw.
   // The syntax is: key: (override_value, fallback_default)
-  scope: (ctx) => context.scope(ctx,
+  scope: (ctx) => core.scope(ctx,
     my-btn-color: (color, black)
   ),
 
@@ -78,7 +78,7 @@ Because we implemented the Provider pattern, this single component is now incred
 
 // Case 2: Context Inheritance (The Provider)
 // We set the color ONCE at the top...
-#motif(scope: ctx => context.scope(ctx, my-btn-color: blue))[
+#motif(scope: ctx => core.scope(ctx, my-btn-color: (blue, none)))[
   #stack(dir: ltr)[
     #my-button("Submit")  // ...and these automatically become Blue
     #my-button("Cancel")  // ...without passing arguments!
@@ -121,4 +121,4 @@ In contrast, if you calculate something inside the `measure` function and return
 A common mistake is assuming a key exists because "usually a parent sets it."
 If a user pastes your component into an empty file, `ctx.my-key` might be missing, causing a crash.
 
-By using the `scope: (ctx) => context.scope(ctx, key: (auto, default))` pattern shown above, you guarantee that the key **always exists** with at least a default value, making your components crash-proof.
+By using the `scope: (ctx) => core.scope(ctx, key: (auto, default))` pattern shown above, you guarantee that the key **always exists** with at least a default value, making your components crash-proof.

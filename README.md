@@ -2,127 +2,117 @@
 
 **Reactive Documents for Typst**
 
-Loom is a meta-engine for [Typst](https://typst.app) that introduces **bidirectional data flow**, **global state management**, and **complex data aggregation** to your documents.
-
-It transforms Typst's linear execution model into a multi-pass "weave" loop, enabling parent components to react to data from their children and allowing deep context propagation without parameter drilling.
+Loom transforms Typst from a linear typesetting system into a **reactive engine**. It enables bidirectional data flow, allowing your document to "think" before it renders.
 
 ## Why Loom?
 
-Typst is excellent for layout, but complex logic often hits a wall:
+Typst is built for speed and linear execution, which makes certain logic patterns difficult. Loom solves two specific architectural headaches:
 
-- **One-Way Flow:** A parent usually cannot know the "total cost" of its children before rendering itself.
-- **Immutable State:** You cannot easily mutate a global counter or configuration object from deeply nested content.
+1.  **The "Shopping List" Problem (Aggregation):**
+    - _The Pain:_ A parent component (like a `Recipe`) cannot naturally calculate a total (Price, Calories) from its children (`Ingredients`) because the children typically render _after_ the parent has started.
+    - _The Fix:_ Loom lets children emit **Signals** that bubble up. The parent receives this data _before_ it draws the final output.
 
-Loom solves this by treating your document as a component tree that is evaluated until data converges.
+2.  **The "Global State" Problem (Dependencies):**
+    - _The Pain:_ Modifying a global counter or configuration from deep inside a nested structure is hard due to Typst's immutable state and linear flow.
+    - _The Fix:_ Loom runs a **Weave Loop** (multiple passes). A component at the bottom of page 10 can emit a signal that updates a summary on page 1.
 
-## Features
+---
 
-- **Global Context (Scope):** Inject variables that are inherited by all descendants.
-- **Signals (Bottom-Up Data):** Components can emit data that bubbles up to their parents for aggregation.
-- **Fixed-Point Iteration:** The engine automatically runs multiple passes to resolve dependencies (e.g., _Ingredient -> Recipe -> Shopping List_).
-- **Managed Identity:** Components can track their unique path and ID within the document hierarchy.
+## ⚡ Performance: The "Budget" Rule
+
+Loom brings "Time Travel" to Typst, but this comes at a cost. To keep your documents fast, follow the **10% Rule**:
+
+> **Loom is for Structure, not Content.**
+
+- **🟢 Traversal is Cheap:** Loom can traverse **30,000+ standard nodes** (paragraphs, shapes, text) in ~1.7s. You can write long theses without penalty.
+- **🔴 Logic is Expensive:** "Active" Loom components (Context mutations, Signals) are heavy. In stress tests, 2,000 active components slowed compilation to ~8s.
+
+**Verdict:** Use Loom to manage your document's skeleton (Sections, Headers, Totals), but do not use it for the flesh (individual table cells, list bullets, or thousands of data points).
 
 ## Installation
 
-Import Loom directly from the package preview (once published):
+Import Loom from the package preview:
 
 ```typ
 #import "@preview/loom:0.1.0": construct-loom
-
 ```
 
-## Quick Start
+## 🚀 Quick Start (Best Practice)
 
-Loom uses a specific setup pattern to keep your code clean and prevent namespace collisions.
+To prevent namespace collisions and keep your code clean, we recommend the **Wrapper Pattern**.
 
 ### 1. Create a Library File (`lib.typ`)
 
-Initialize Loom once and export the tools you need.
+Initialize Loom once with a unique project key and export the specific tools you need.
 
 ```typ
 // lib.typ
 #import "@preview/loom:0.1.0": construct-loom
 
-// Initialize with a unique project key
+// 1. Initialize with a unique ID
 #let loom = construct-loom(<my-project>)
 
-// Export the engine and constructors
+// 2. Export the tools
 #let weave = loom.weave
 #let motif = loom.motif.plain
 #let managed-motif = loom.motif.managed
+#let data-motif = loom.motif.data
 ```
 
 ### 2. Build your Document (`main.typ`)
 
-Import your library and start weaving.
-
 ```typ
 // main.typ
-#import "loom-wrapper.typ": *
+#import "lib.typ": *
 
-// Define a simple component
-#let counter-box(value) = motif(
-  // The 'draw' phase renders the output
-  draw: (ctx, public, view, body) => {
-    block(stroke: 1pt + blue, inset: 1em, radius: 4pt)[
-      *Count:* #value
-    ]
-  },
-  none
+// A component that reports data to its parent (No visual output)
+#let ingredient(price) = data-motif(
+  "ingredient",
+  measure: (ctx) => (price: price)
 )
 
-// Start the engine
+// A parent that sums up the data from its children
+#let recipe(name, body) = motif(
+  measure: (ctx, children-data) => {
+    let total = children-data.map(c => c.signal.price).sum()
+    ( (price: total), (price: total) )
+  },
+  draw: (ctx, public, view, body) => {
+    block(stroke: 1pt + black, inset: 1em)[
+      *#name* (Total: $#view.price)
+      #body
+    ]
+  },
+  body
+)
+
 #show: weave.with()
 
-#stack(dir: ltr, spacing: 1em)[
-  #counter-box(10)
-  #counter-box(20)
+#recipe("Tomato Soup")[
+  #ingredient(2.50)
+  #ingredient(0.50)
+  #ingredient(1.00)
+  Ingredients listed here...
 ]
 ```
 
-## Documentation
+## 🧠 Core Concepts
 
-Full documentation is available in the [`docs/`](https://github.com/leonieziechmann/loom/tree/main/docs) folder.
+| Concept     | Direction | Description                                                                                     |
+| ----------- | --------- | ----------------------------------------------------------------------------------------------- |
+| **Scope**   | ⬇️ Down   | **Context.** Parents inject variables (themes, flags) that are inherited by all descendants.    |
+| **Signals** | ⬆️ Up     | **Aggregation.** Children emit data "frames" that bubble up to their parents for summarization. |
+| **Weave**   | 🔄 Loop   | **Convergence.** The engine runs multiple passes (Measure → Draw) until data stabilizes.        |
 
-- **[Getting Started](https://github.com/leonieziechmann/loom/blob/main/docs-md/01-getting-started.md)** - Installation and setup.
-- **[Core Concepts](https://github.com/leonieziechmann/loom/blob/main/docs-md/02-core-concepts.md)** - Understanding the Weave Loop, Signals, and Scope.
-- **[Motif Types](https://github.com/leonieziechmann/loom/blob/main/docs-md/03-motifs.md)** - When to use `managed`, `content`, or `data` motifs.
-- **[Query Module](https://github.com/leonieziechmann/loom/blob/main/docs-md/04-queries.md)** - filtering and aggregating signals.
-- **[Guards & Validation](https://github.com/leonieziechmann/loom/blob/main/docs-md/05-guards.md)** - Enforcing hierarchy rules.
-- **[State Management](https://github.com/leonieziechmann/loom/blob/main/docs-md/06-state-management.md)** - Working with immutable dictionaries.
-- **[API Reference](https://github.com/leonieziechmann/loom/blob/main/docs-md/07-api-reference.md)** - Function signatures.
+## ⚠️ Capabilities & Limits
 
-## ⚠️ Architectural Constraints & Limitations
+Loom operates within the boundaries of the Typst runtime.
 
-Loom is a powerful meta-engine, but it operates within the boundaries of the Typst runtime. To ensure stability and predictable behavior, be aware of the following constraints:
-
-### 1. Vertical-Only Communication (Sibling Latency)
-
-Data in Loom flows vertically: **Child → Parent → Context**.
-
-- **Constraint:** Sibling components (neighbors) cannot exchange data within the _same_ render pass.
-- **Workaround:** To react to a sibling's state (e.g., "match my width to the element on the left"), the data must travel up to a common ancestor and be injected back down in a **subsequent pass**. This requires increasing `max-passes` (e.g., to 3).
-
-### 2. Maximum Nesting Depth (~50 Levels)
-
-- **Constraint:** The core `intertwine` traversal is recursive. Due to Typst's internal stack limits, nesting Loom components deeper than approximately 50 levels may trigger a runtime panic.
-- **Best Practice:** Loom is designed for document structure (Sections > Components > Atoms), not for fractal generation or extremely deep recursion.
-
-### 3. Opaque Named Fields
-
-- **Constraint:** Loom only "intertwines" (processes) the primary flow content (usually `body` or `children`). Components placed inside named arguments—such as `figure(caption: ...)` or `table(header: ...)`—are treated as **atomic**.
-- **Result:** A Loom component inside a `caption` will render visually, but it cannot participate in the measure loop, receive context, or emit signals.
-
-### 4. Show Rule Invisibility
-
-- **Constraint:** Loom operates on the Abstract Syntax Tree (AST) _before_ Typst executes standard `#show` rules.
-- **Result:** If you use a show rule to transform raw content into a Loom component (e.g., `show "text": name => loom-component(name)`), the engine will not "see" that component during the measure phase. Loom components must be explicitly present in the source code.
-
-### 5. Performance Overhead
-
-- **Constraint:** Since Typst dictionaries are immutable, every context mutation (Scope injection) creates a copy of the state object.
-- **Impact:** Compilation time scales linearly with component count and effectively multiplies by the number of passes. Loom is built for document management, not for high-frequency node generation (e.g., rendering thousands of particles).
+1. **Vertical-Only Flow:** Data flows `Child -> Parent -> Context`. Sibling components cannot "see" each other in the same pass; data must go up to a common ancestor and back down in the next pass.
+2. **Stack Depth:** Recursion is limited to approximately **50 levels**. Avoid deeply nested `div > div > div` structures; flatten your hierarchy where possible.
+3. **Opaque Fields:** Loom cannot "see" inside named arguments like `figure(caption: [here])`. Components placed inside captions or headers will render visually but cannot participate in the logic loop.
+4. **Show Rules:** Standard `#show` rules run _after_ Loom's logic. You cannot use a show rule to transform text into a Loom component.
 
 ## License
 
-This project is licensed under the MIT License.
+MIT License
