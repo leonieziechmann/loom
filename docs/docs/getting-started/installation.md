@@ -28,11 +28,11 @@ Create a file named `loom-wrapper.typ` (or `loomw.typ`) in your project root.
 
 ```typ title="loom-wrapper.typ"
 #import "@preview/loom:0.1.0"
-#import loom: guards, mutator
+#import loom: query, guards, mutator, matcher, collection
 
 // 1. Construct a unique instance for your project.
 // The key (<my-project>) isolates your components from other libraries.
-#let (weave, motif, prebuild-motif) = loom.construct-loom(<my-project>)
+#let (weave, motif, prebuild-motif) = construct-loom(<my-project>)
 
 // 2. Export the specific tools you want to use.
 // This keeps your API clean for the rest of your document.
@@ -41,13 +41,14 @@ Create a file named `loom-wrapper.typ` (or `loomw.typ`) in your project root.
 #let weave = weave
 
 // The Component Constructors
-#let motif = motif.plain
-#let managed = motif.managed
+#let managed-motif = motif.managed
 #let content-motif = motif.content
 #let data-motif = motif.data
+#let motif = motif.plain
 
-// Utilities
-#let scope = loom.context.scope
+// Prebuild Motifs
+#let apply = prebuild-motif.apply
+#let debug = prebuild-motif.debug
 ```
 
 **Why do this?**

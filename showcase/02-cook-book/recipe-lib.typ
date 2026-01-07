@@ -1,4 +1,6 @@
-#import "../../lib.typ": *
+#import "../../lib.typ"
+#import lib: *
+#let scope = lib.context.scope
 
 // 1. Initialize Loom
 #let loom = construct-loom(<recipe-loom>)
@@ -8,7 +10,7 @@
   accent: rgb("#E67E22"),
   dark: rgb("#2C3E50"),
   light: rgb("#7F8C8D"),
-  bg: luma(240)
+  bg: luma(240),
 )
 
 #let format-amount(num) = {
@@ -19,49 +21,56 @@
 
 // A. INGREDIENT
 // Akzeptiert Nährwerte für die Auto-Berechnung
-#let ing(name, amount, unit: "", kcal: 0, prot: 0, carbs: 0, fat: 0) = (loom.motif.managed)(
+#let ing(name, amount, unit: "", kcal: 0, prot: 0, carbs: 0, fat: 0) = (
+  loom.motif.managed
+)(
   "ing",
   measure: (ctx, _) => {
     let factor = ctx.at("scale-factor", default: 1.0)
     let final-amount = amount * factor
-    
+
     // Nährwerte skalieren (für die Summe im Root)
     let final-nut = (
       kcal: kcal * factor,
       prot: prot * factor,
       carbs: carbs * factor,
-      fat: fat * factor
+      fat: fat * factor,
     )
-    
+
     let signal = (
-      kind: "ing", 
-      name: name, 
-      amount: final-amount, 
+      name: name,
+      amount: final-amount,
       unit: unit,
-      ..final-nut 
+      ..final-nut,
     )
-    
+
     (signal, (amount: final-amount, unit: unit))
   },
   draw: (ctx, public, view, _) => {
     text(fill: theme.accent)[*#format-amount(view.amount)#view.unit #name*]
   },
-  none
+  none,
 )
 
 // B. NUTRITION (Manuell) [WIEDER EINGEFÜGT]
 // Erlaubt das manuelle Überschreiben der Nährwerte pro Portion.
 #let nutrition(kcal, prot, carbs, fat) = (loom.motif.data)(
   "nutrition",
-  measure: (ctx) => (kind: "nutrition", kcal: kcal, prot: prot, carbs: carbs, fat: fat)
+  measure: ctx => (
+    kind: "nutrition",
+    kcal: kcal,
+    prot: prot,
+    carbs: carbs,
+    fat: fat,
+  ),
 )
 
 // C. STEP
 #let step(number, body) = (loom.motif.managed)(
   "step",
   measure: (ctx, children) => {
-    let local-ings = children.map(c => c.signal).filter(s => s != none and s.kind == "ing")
-    (local-ings, (number: number, local-ings: local-ings))
+    let local-ings = query.collect(children, kind: "ing")
+    (local-ings, (number: number, local-ings: local-ings.map(c => c.signal)))
   },
   draw: (ctx, public, view, body) => {
     grid(
@@ -80,33 +89,38 @@
         #text(fill: theme.accent, weight: "bold", size: 14pt)[#view.number] \
         #body
         #v(1.5em)
-      ]
+      ],
     )
   },
-  body
+  body,
 )
 
 // D. RECIPE (Logic Hub)
-#let recipe-motif(title, subtitle, image-content, serves, base, body) = (loom.motif.managed)(
+#let recipe-motif(title, subtitle, image-content, serves, base, body) = (
+  loom.motif.managed
+)(
   "recipe",
-  scope: (ctx) => ctx + (scale-factor: serves / base),
-  
+  scope: ctx => ctx + (scale-factor: serves / base),
+
   measure: (ctx, children) => {
-    let steps = query.select(children, "step")
-    let ingrediants = steps.map(s => {
-      if type(s.signal) == array { s.signal } else { () }
-    }).flatten().filter(e => e != none and e.at("kind", default: "") == "ing")
-    
+    //let steps = query.select(children, "step")
+    //let ingrediants = steps.map(s => s.signal).flatten()
+    let ingrediants = query.collect(children, kind: "ing").map(c => c.signal)
+
     // 1. Check auf MANUELLE Nutrition
     let manual-nut = query.find(children, "nutrition")
-    
+
     // 2. Shopping List & Auto-Nutrition berechnen
     let shopping-list = (:)
     let total-nut = (kcal: 0, prot: 0, carbs: 0, fat: 0)
 
     for item in ingrediants {
       let key = item.name + "|" + item.unit
-      let current = shopping-list.at(key, default: (amount: 0, unit: item.unit, name: item.name))
+      let current = shopping-list.at(key, default: (
+        amount: 0,
+        unit: item.unit,
+        name: item.name,
+      ))
       current.amount += item.amount
       shopping-list.insert(key, current)
 
@@ -122,67 +136,87 @@
     // 3. Entscheidung: Manuell oder Automatisch?
     // Wir bereiten Strings für die View vor, um "4g" und 4.0 zu vereinheitlichen.
     let display-nut = none
-    
+
     if manual-nut != none {
-       // Fall A: Manuell (User Inputs direkt nehmen)
-       display-nut = manual-nut.signal
+      // Fall A: Manuell (User Inputs direkt nehmen)
+      display-nut = manual-nut.signal
     } else if total-nut.kcal > 0 {
-       // Fall B: Automatisch (Durch Serves teilen)
-       let s = if serves > 0 { serves } else { 1 }
-       display-nut = (
-         kcal: str(calc.round(total-nut.kcal / s)),
-         prot: str(calc.round(total-nut.prot / s)) + "g",
-         carbs: str(calc.round(total-nut.carbs / s)) + "g",
-         fat: str(calc.round(total-nut.fat / s)) + "g"
-       )
+      // Fall B: Automatisch (Durch Serves teilen)
+      let s = if serves > 0 { serves } else { 1 }
+      display-nut = (
+        kcal: str(calc.round(total-nut.kcal / s)),
+        prot: str(calc.round(total-nut.prot / s)) + "g",
+        carbs: str(calc.round(total-nut.carbs / s)) + "g",
+        fat: str(calc.round(total-nut.fat / s)) + "g",
+      )
     }
 
-    (none, (
-      shopping-list: shopping-list, 
-      display-nut: display-nut,
-      serves: serves 
-    ))
+    (
+      none,
+      (
+        shopping-list: shopping-list,
+        display-nut: display-nut,
+        serves: serves,
+      ),
+    )
   },
-  
+
   draw: (ctx, public, view, body) => {
     // ... Header Helper (unverändert) ...
     let render-header() = {
-       v(1em)
-       text(24pt, weight: "bold", fill: theme.accent, title)
-       v(0.5em)
-       text(14pt, style: "italic", fill: theme.light, subtitle)
-       v(1.5em)
-       if image-content != none {
-         block(
-           width: 100%, height: 6cm, fill: theme.bg, radius: 10pt, clip: true,
-           align(center + horizon, image-content)
-         )
-       }
-       v(2em)
+      v(1em)
+      text(24pt, weight: "bold", fill: theme.accent, title)
+      v(0.5em)
+      text(14pt, style: "italic", fill: theme.light, subtitle)
+      v(1.5em)
+      if image-content != none {
+        block(
+          width: 100%,
+          height: 6cm,
+          fill: theme.bg,
+          radius: 10pt,
+          clip: true,
+          align(center + horizon, image-content),
+        )
+      }
+      v(2em)
     }
 
     let render-meta() = {
-       block(width: 100%, stroke: (bottom: 1pt + theme.light), inset: (bottom: 0.5em))[
-         #text(fill: theme.dark, weight: "bold", size: 1.2em)[Serves: #view.serves]
-       ]
-       v(1em)
+      block(
+        width: 100%,
+        stroke: (bottom: 1pt + theme.light),
+        inset: (bottom: 0.5em),
+      )[
+        #text(
+          fill: theme.dark,
+          weight: "bold",
+          size: 1.2em,
+        )[Serves: #view.serves]
+      ]
+      v(1em)
     }
 
     let render-nutrition() = {
       let vals = view.display-nut
       if vals != none {
         rect(
-           width: 100%, fill: theme.accent.lighten(90%), stroke: none, radius: 5pt, inset: 10pt,
-           align(center, text(size: 9pt)[
-             *Nutrition per Serving* \ #v(5pt)
-             #grid(
-               columns: 4, gutter: 5pt,
-               [*#vals.kcal* \ kcal], 
-               [*#vals.prot* \ Prot], 
-               [*#vals.carbs* \ Carb], 
-               [*#vals.fat* \ Fat],
-             )
-           ])
+          width: 100%,
+          fill: theme.accent.lighten(90%),
+          stroke: none,
+          radius: 5pt,
+          inset: 10pt,
+          align(center, text(size: 9pt)[
+            *Nutrition per Serving* \ #v(5pt)
+            #grid(
+              columns: 4,
+              gutter: 5pt,
+              [*#vals.kcal* \ kcal],
+              [*#vals.prot* \ Prot],
+              [*#vals.carbs* \ Carb],
+              [*#vals.fat* \ Fat],
+            )
+          ]),
         )
       }
     }
@@ -201,7 +235,8 @@
     // --- MAIN RENDER ---
     render-header()
     grid(
-      columns: (25%, 1fr), column-gutter: 2em,
+      columns: (25%, 1fr),
+      column-gutter: 2em,
       [
         #render-meta()
         #render-nutrition()
@@ -211,18 +246,18 @@
         #text(16pt, weight: "bold")[Instructions]
         #v(1em)
         #body
-      ]
+      ],
     )
   },
-  body
+  body,
 )
 
 // --- PUBLIC ENTRY POINT ---
 #let recipe(title: "", subtitle: "", image: none, serves: 2, base: 2, body) = {
   set text(font: "Linux Libertine", fill: theme.dark, size: 11pt)
   set page(margin: 2cm, numbering: "1")
-  
+
   (loom.weave)(
-    recipe-motif(title, subtitle, image, serves, base, body)
+    recipe-motif(title, subtitle, image, serves, base, body),
   )
 }

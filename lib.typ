@@ -15,9 +15,8 @@
  * ----------------------------------------------------------------------------
  */
 
- // --- CORE ENGINE ---
+// --- CORE ENGINE ---
 #import "src/public/factory.typ"
-#import "src/public/context.typ"
 #import "src/public/core.typ"
 
 // --- DATA MODEL ---
@@ -26,11 +25,11 @@
 #import "src/public/primitives.typ"
 
 // --- UTILITIES ---
-#import "src/lib/assert.typ": 
-#import "src/public/collection.typ"
+#import "src/public/query.typ"
 #import "src/public/guards.typ"
 #import "src/public/mutator.typ"
-#import "src/public/query.typ"
+#import "src/public/matcher.typ"
+#import "src/public/collection.typ"
 
 /// The primary entry point for creating a Loom instance.
 ///

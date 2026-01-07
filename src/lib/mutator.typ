@@ -30,30 +30,30 @@
 /// ```
 ///
 /// The resulting dictionary after all operations have been applied.
-/// -> dictionary: 
+/// -> dictionary:
 #let batch(
   /// The initial dictionary to start with. If `none`, starts with an empty dictionary `(:)`
   /// -> dictionary
-  target, 
+  target,
   /// An array of operation functions (e.g., created by `put`, `remove`, `nest`).
   /// -> array<function>
-  ops
+  ops,
 ) = {
   let state = (base: if target == none { (:) } else { target }, patch: (:))
 
   if ops == none { return state.base }
 
   let _read(s, key) = {
-    if key in s.patch { s.patch.at(key) }
-    else { s.base.at(key, default: none) }
+    if key in s.patch { s.patch.at(key) } else { s.base.at(key, default: none) }
   }
 
   for op in ops {
     state = op(state, _read)
   }
 
-  return if state.patch.len() == 0 { state.base }
-  else { state.base + state.patch }
+  return if state.patch.len() == 0 { state.base } else {
+    state.base + state.patch
+  }
 }
 
 /// Creates an operation to set a value for a specific key.
@@ -63,14 +63,16 @@
 #let put(
   /// The key to assign.
   /// -> str
-  key, 
+  key,
   /// The value to assign to the key.
   /// -> any
-  value
-) = ((state, reader) => {
-  let new-path = state.patch + ((key): value)
-  (base: state.base, patch: new-path)
-},)
+  value,
+) = (
+  (state, reader) => {
+    let new-path = state.patch + ((key): value)
+    (base: state.base, patch: new-path)
+  },
+)
 
 /// Creates an operation that sets a value only if the key does not currently exist.
 /// Useful for setting default values without overwriting existing data.
@@ -79,19 +81,50 @@
 #let ensure(
   /// The key to check.
   /// -> str
-  key, 
+  key,
   /// The value to set if the key is missing (or `none`).
   /// -> any
-  default
-) = ((state, reader) => {
-  let curr = reader(state, key)
-  if curr == none {
-    let new-patch = state.patch + ((key): default)
-    (base: state.base, patch: new-patch)
-  } else {
-    state
-  }
-},)
+  default,
+) = (
+  (state, reader) => {
+    let curr = reader(state, key)
+    if curr == none {
+      let new-patch = state.patch + ((key): default)
+      (base: state.base, patch: new-patch)
+    } else {
+      state
+    }
+  },
+)
+
+/// Creates an operation that sets a value, inheriting the previous one if `auto`.
+///
+/// - If `value` is `auto`: uses the current state value.
+/// - If current state is missing: uses `default`.
+/// - If `value` is set: uses that value.
+///
+/// -> operation
+#let derive(
+  /// The key to update.
+  /// -> str
+  key,
+  /// The new value (or `auto`).
+  /// -> any
+  value,
+  /// Fallback if `value` is `auto` and key is missing in state.
+  /// -> any
+  default: none,
+) = (
+  (state, reader) => {
+    let delta-patch = if value == auto {
+      ((key): state.base.at(key, default: default))
+    } else {
+      ((key): value)
+    }
+
+    (base: state.base, patch: state.path + delta-patch)
+  },
+)
 
 /// Creates an operation to transform an existing value using a callback function.
 ///
@@ -107,13 +140,15 @@
   key,
   /// A function that takes the current value of `key` and returns the new value.
   /// -> function
-  fn
-) = ((state, reader) => {
-  let curr = reader(state, key)
-  let new-val = fn(curr)
-  let new-patch = state.patch + ((key): new-val)
-  (base: state.base, patch: new-patch)
-},)
+  fn,
+) = (
+  (state, reader) => {
+    let curr = reader(state, key)
+    let new-val = fn(curr)
+    let new-patch = state.patch + ((key): new-val)
+    (base: state.base, patch: new-patch)
+  },
+)
 
 /// Creates an operation to remove a key from the dictionary.
 ///
@@ -121,16 +156,18 @@
 #let remove(
   /// The key to remove.
   /// -> str
-  key
-) = ((state, reader) => {
-  let new-patch = state.patch
-  let _ = new-patch.remove(key, default: none)
+  key,
+) = (
+  (state, reader) => {
+    let new-patch = state.patch
+    let _ = new-patch.remove(key, default: none)
 
-  let new-base = state.base
-  let _ = new-base.remove(key, default: none)
+    let new-base = state.base
+    let _ = new-base.remove(key, default: none)
 
-  (base: new-base, patch: new-patch)
-},)
+    (base: new-base, patch: new-patch)
+  },
+)
 
 /// Applies a set of operations to a nested dictionary under a specific key.
 /// If the key does not exist or is not a dictionary, it initializes an empty dictionary first.
@@ -147,21 +184,25 @@
 #let nest(
   /// The key containing the nested dictionary.
   /// -> str
-  key, 
+  key,
   /// A list of operations to apply to the nested dictionary.
   /// -> array<function>
-  sub-ops
-) = ((state, reader) => {
-  let curr = reader(state, key)
-  let sub-target = if type(curr) == dictionary { curr } else { (:) }
+  sub-ops,
+) = (
+  (state, reader) => {
+    let curr = reader(state, key)
+    let sub-target = if type(curr) == dictionary { curr } else { (:) }
 
-  let new-sub-result = batch(sub-target, sub-ops)
+    let new-sub-result = batch(sub-target, sub-ops)
 
-  let new-patch = state.patch + ((key): new-sub-result)
-  (base: state.base, patch: new-patch)
-},)
+    let new-patch = state.patch + ((key): new-sub-result)
+    (base: state.base, patch: new-patch)
+  },
+)
 
-#let merge(other) = ((state, reader) => {
-  let new-patch = state.patch + other
-  (base: state.base, patch: new-patch)
-},)
+#let merge(other) = (
+  (state, reader) => {
+    let new-patch = state.patch + other
+    (base: state.base, patch: new-patch)
+  },
+)

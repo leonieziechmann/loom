@@ -35,11 +35,10 @@
 #let construct(
   /// A unique label to identify components belonging to this Loom instance.
   /// -> label
-  key
+  key,
 ) = (
   // Engine Entrypoint
   weave: runtime.weave.with(key: key),
-
   // Component Constructors
   motif: (
     plain: primitives.motif.with(key: key),
@@ -48,9 +47,8 @@
     data: primitives.data-motif.with(key: key),
     content: primitives.content-motif.with(key: key),
   ),
-
   // Pre-built Utility Components
-  prebuild-moitf: (
+  prebuild-motif: (
     debug: motifs.debug-motif.with(key: key),
     apply: motifs.apply-motif.with(key: key),
   ),
