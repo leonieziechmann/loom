@@ -6,25 +6,36 @@
 
 /* You can override the default Infima variables here. */
 :root {
-  --ifm-color-primary: #2e8555;
-  --ifm-color-primary-dark: #29784c;
-  --ifm-color-primary-darker: #277148;
-  --ifm-color-primary-darkest: #205d3b;
-  --ifm-color-primary-light: #33925d;
-  --ifm-color-primary-lighter: #359962;
-  --ifm-color-primary-lightest: #3cad6e;
+  /* --- BRAND COLORS (Electric Teal #239DAD) --- */
+  --ifm-color-primary: #239DAD;
+  --ifm-color-primary-dark: #1F8B9B;
+  --ifm-color-primary-darker: #1D8392;
+  --ifm-color-primary-darkest: #186C79;
+  --ifm-color-primary-light: #2DBFD3;
+  --ifm-color-primary-lighter: #32C8DD;
+  --ifm-color-primary-lightest: #4FE1F5;
+
+  /* --- TEXT CONTRAST (Light Mode) --- */
+  /* Making text darker (almost pure black) for better readability */
+  --ifm-font-color-base: #0a0a0a;
+
   --ifm-code-font-size: 95%;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
 }
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
 [data-theme='dark'] {
-  --ifm-color-primary: #25c2a0;
-  --ifm-color-primary-dark: #21af90;
-  --ifm-color-primary-darker: #1fa588;
-  --ifm-color-primary-darkest: #1a8870;
-  --ifm-color-primary-light: #29d5b0;
-  --ifm-color-primary-lighter: #32d8b4;
-  --ifm-color-primary-lightest: #4fddbf;
+  /* --- BRAND COLORS (Neon Teal) --- */
+  /* In dark mode, we make the teal slightly brighter to pop against the navy */
+  --ifm-color-primary: #2BC4D6;
+  --ifm-color-primary-dark: #239DAD;
+  --ifm-color-primary-darker: #1F8B9B;
+  --ifm-color-primary-darkest: #186C79;
+  --ifm-color-primary-light: #4FE1F5;
+  --ifm-color-primary-lighter: #63E6F7;
+  --ifm-color-primary-lightest: #9BF1FB;
+
+  --ifm-font-color-base: #f0f0f0;
+
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
 }

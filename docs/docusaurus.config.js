@@ -89,7 +89,7 @@ const config = {
         title: 'Loom Documentation',
         logo: {
           alt: 'Loom Logo',
-          src: 'img/logo.svg',
+          src: 'img/logo.png',
         },
         items: [
           {
