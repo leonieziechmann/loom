@@ -51,7 +51,7 @@ const config = {
         docs: {
           routeBasePath: "/",
           sidebarPath: './sidebars.js',
-          editUrl: 'https://github.com/leonieziechmann/loom/tree/main/',
+          editUrl: 'https://github.com/leonieziechmann/loom/tree/main/docs',
         },
         blog: false,
         theme: {
