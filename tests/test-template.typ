@@ -2,7 +2,7 @@
   title: [title: Test Title],
   description: [description: Short Description],
   abstract: [abstract: Abstract of the test],
-  body
+  body,
 ) = {
   set page(
     paper: "a4",
@@ -10,13 +10,16 @@
     numbering: "1/1",
     header: context {
       if counter(page).get().first() > 1 {
-        align(right, text(size: 8pt, style: "italic")[Loom Engine Compliance Report])
+        align(right, text(
+          size: 8pt,
+          style: "italic",
+        )[Loom Engine Compliance Report])
         line(length: 100%, stroke: 0.5pt + gray)
       }
-    }
+    },
   )
 
-  set text(font: "Linux Libertine", size: 11pt, lang: "en")
+  set text(size: 11pt, lang: "en")
   set heading(numbering: "1.1")
 
   // --- UTILITIES & TEMPLATES ---
@@ -62,31 +65,36 @@
     inset: (left: 1em, rest: 1em),
     width: 100%,
     breakable: false, // Keep tests atomic on pages if possible
-    radius: (right: 4pt)
+    radius: (right: 4pt),
   )[
-    #stack(dir: ltr, spacing: 1fr,
+    #stack(
+      dir: ltr,
+      spacing: 1fr,
       text(weight: "bold", size: 1.1em, fill: eastern)[#title],
       // Render tags
-      stack(dir: ltr, spacing: 5pt, ..tags.map(t => 
-        box(fill: luma(240), inset: 3pt, radius: 2pt, text(size: 8pt)[#upper(t)])
-      ))
+      stack(dir: ltr, spacing: 5pt, ..tags.map(t => box(
+        fill: luma(240),
+        inset: 3pt,
+        radius: 2pt,
+        text(size: 8pt)[#upper(t)],
+      ))),
     )
     #v(0.5em)
     #grid(
       columns: (auto, 1fr),
       gutter: 0.8em,
       [*Objective:*], task,
-      [*Abstract:*], text(size: 0.9em, style: "italic")[#abstract]
+      [*Abstract:*], text(size: 0.9em, style: "italic")[#abstract],
     )
     #line(length: 100%, stroke: 0.5pt + gray.lighten(60%))
     #v(0.5em)
     // The visual boundary for the content under test
     #block(
-      width: 100%, 
-      fill: white, 
-      inset: 5pt, 
+      width: 100%,
+      fill: white,
+      inset: 5pt,
       stroke: (paint: gray, dash: "dashed"),
-      radius: 2pt
+      radius: 2pt,
     )[
       #body
     ]
@@ -98,7 +106,9 @@
 // --- ASSERTION HELPER ---
 #let assert-eq(val, expected, msg: "Assertion failed") = {
   if val != expected {
-    panic(msg + ". Expected: `" + repr(expected) + "`, Got: `" + repr(val) + "`")
+    panic(
+      msg + ". Expected: `" + repr(expected) + "`, Got: `" + repr(val) + "`",
+    )
   }
   // Visualisierung: Grüner Haken + Die Nachricht (= was wurde getestet) + Wert (grau)
   box[
@@ -107,7 +117,7 @@
     #text(size: 0.9em)[#msg]
     #h(0.5em)
     #text(fill: gray, size: 0.7em)[(Val: #repr(val))]
-  ] 
+  ]
   linebreak()
 }
 

@@ -1,4 +1,4 @@
-#import "../lib.typ": *
+#import "/lib.typ": *
 
 #let loom = construct-loom(<loom-test>)
 

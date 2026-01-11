@@ -4,9 +4,13 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
+    tytanic = {
+      url = "github:typst-community/tytanic/v0.3.3";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, pre-commit-hooks }:
+  outputs = { self, nixpkgs, pre-commit-hooks, tytanic }:
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
@@ -42,6 +46,7 @@
           nodePackages.prettier
           nodejs
           yarn
+          tytanic.packages.${system}.default
         ] ++ self.checks.${system}.pre-commit-check.enabledPackages;
 
         shellHook = ''
