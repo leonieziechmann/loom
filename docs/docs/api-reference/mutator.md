@@ -105,6 +105,10 @@ derive(key, value, default: none)
 
 Transforms an existing value using a callback function.
 
+:::warning Existing Keys Only
+The callback is only executed if the key **already exists** in the dictionary (and is not `none`). If the key is missing, this operation does nothing. Use `put` or `ensure` if you need to initialize values.
+:::
+
 ```typ
 update(key, callback)
 ```
@@ -139,7 +143,23 @@ merge(other-dictionary)
 | `other-dictionary` | `dictionary` | Required | The dictionary to merge into the current state. |
 
 :::warning Shallow Merge
-This operation performs a **shallow merge**. If you need to merge deeply nested dictionaries, use `nest` combined with individual operations, or multiple `nest` calls.
+This operation performs a **shallow merge**. Nested dictionaries in `other-dictionary` will overwrite those in the state. For deep merging, use `merge-deep`.
+:::
+
+### `merge-deep`
+
+Recursively merges another dictionary into the current state.
+
+```typ
+merge-deep(other-dictionary)
+```
+
+| Parameter          | Type         | Default  | Description                                                 |
+| ------------------ | ------------ | -------- | ----------------------------------------------------------- |
+| `other-dictionary` | `dictionary` | Required | The dictionary to merge recursively into the current state. |
+
+:::tip Use Case
+Use `merge-deep` when you want to apply a configuration patch that contains nested settings without wiping out the existing sibling keys in those nested objects.
 :::
 
 ---

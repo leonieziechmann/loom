@@ -1,3 +1,3 @@
 #import "../lib/mutator.typ": (
-  batch, derive, ensure, merge, nest, put, remove, update,
+  batch, derive, ensure, merge, merge-deep, nest, put, remove, update,
 )

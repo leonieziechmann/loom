@@ -9,7 +9,7 @@
  * Copyright (c) 2026 Leonie Juna Ziechmann. All rights reserved.
  * ----------------------------------------------------------------------------
  * Description:
- * Provides functional utilities for manipulating data collections (dictionaries 
+ * Provides functional utilities for manipulating data collections (dictionaries
  * and arrays). Includes safe navigation (get), deep merging, and filtering.
  * ----------------------------------------------------------------------------
  */
@@ -20,8 +20,8 @@
 /// does not exist, or if an intermediate value is `none`, it returns the
 /// `default` value instead of panicking.
 ///
-/// - root (dictionary | array): 
-/// - default (any): 
+/// - root (dictionary | array):
+/// - default (any):
 ///
 /// # Example
 /// ```typ
@@ -34,16 +34,16 @@
 #let get(
   /// The data structure to traverse.
   /// -> dictionary | array
-  root, 
+  root,
   /// A sequence of keys (for dicts) or indices (for arrays).
   /// ..(str | int)
-  ..path, 
+  ..path,
   /// Required type by the final outcome.
   /// -> type
-  req-type: none, 
+  req-type: none,
   /// The value to return if the path is invalid or the result is `none`.
   /// -> any
-  default: none
+  default: none,
 ) = {
   let current = root
   let path-args = path.pos()
@@ -63,7 +63,7 @@
   }
 
   if req-type != none and type(current) != req-type { return default }
-  
+
   return current
 }
 
@@ -80,13 +80,13 @@
 #let map(
   /// The value to transform.
   /// -> any
-  value,  
+  value,
   /// The transformation function.
   /// -> function
-  fn, 
+  fn,
   /// Type expected by the function.
   /// -> type
-  req-type: none
+  req-type: none,
 ) = {
   if value == none { return none }
   if req-type != none and type(value) != req-type { return none }
@@ -109,10 +109,10 @@
 #let merge-deep(
   /// The original dictionary (e.g., default config).
   /// -> dictionary
-  base, 
+  base,
   /// The dictionary with updates (e.g., user config).
   /// -> dictionary
-  override
+  override,
 ) = {
   if type(base) != dictionary or type(override) != dictionary {
     return override
@@ -142,15 +142,15 @@
 #let omit(
   /// The source dictionary.
   /// -> dictionary
-  dict, 
+  dict,
   /// The keys to exclude
   /// -> ..str
-  ..keys
+  ..keys,
 ) = {
   let to-remove = keys.pos()
   let result = dict
 
-  for k in keys {
+  for k in to-remove {
     let _ = result.remove(k, default: none)
   }
 
@@ -164,10 +164,10 @@
 #let pick(
   /// The source dictionary
   /// -> dictionary
-  dict, 
+  dict,
   /// The keys to keep
   /// -> ..str
-  ..keys
+  ..keys,
 ) = {
   let to-keep = keys.pos()
   let result = (:)
@@ -194,10 +194,10 @@
 #let compact(
   /// The collection to clean.
   /// -> array | dictionary
-  collection
+  collection,
 ) = {
   if type(collection) == array {
-    collection.filet(it => it != none)
+    collection.filter(it => it != none)
   } else if type(collection) == dictionary {
     let result = (:)
     for (k, v) in collection {

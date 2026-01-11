@@ -15,6 +15,8 @@
  * ----------------------------------------------------------------------------
  */
 
+#import "collection.typ"
+
 /// Applies a sequence of operations to a target dictionary.
 ///
 /// This function acts as the transaction runner. It takes an initial dictionary
@@ -43,12 +45,14 @@
 
   if ops == none { return state.base }
 
-  let _read(s, key) = {
-    if key in s.patch { s.patch.at(key) } else { s.base.at(key, default: none) }
+  let _read(s, key, default: none) = {
+    if key in s.patch { s.patch.at(key) } else {
+      s.base.at(key, default: default)
+    }
   }
 
   for op in ops {
-    state = op(state, _read)
+    state = op(state, _read.with(state))
   }
 
   return if state.patch.len() == 0 { state.base } else {
@@ -68,7 +72,7 @@
   /// -> any
   value,
 ) = (
-  (state, reader) => {
+  (state, read) => {
     let new-path = state.patch + ((key): value)
     (base: state.base, patch: new-path)
   },
@@ -86,8 +90,8 @@
   /// -> any
   default,
 ) = (
-  (state, reader) => {
-    let curr = reader(state, key)
+  (state, read) => {
+    let curr = read(key)
     if curr == none {
       let new-patch = state.patch + ((key): default)
       (base: state.base, patch: new-patch)
@@ -115,14 +119,12 @@
   /// -> any
   default: none,
 ) = (
-  (state, reader) => {
-    let delta-patch = if value == auto {
-      ((key): state.base.at(key, default: default))
+  (state, read) => {
+    if value == auto {
+      (ensure(key, default).first())(state, read)
     } else {
-      ((key): value)
+      (put(key, value).first())(state, read)
     }
-
-    (base: state.base, patch: state.path + delta-patch)
   },
 )
 
@@ -142,10 +144,10 @@
   /// -> function
   fn,
 ) = (
-  (state, reader) => {
-    let curr = reader(state, key)
-    let new-val = fn(curr)
-    let new-patch = state.patch + ((key): new-val)
+  (state, read) => {
+    if (not key in state.base) and (key in state.patch) { return state }
+
+    let new-patch = state.patch + ((key): fn(read(key)))
     (base: state.base, patch: new-patch)
   },
 )
@@ -158,7 +160,7 @@
   /// -> str
   key,
 ) = (
-  (state, reader) => {
+  (state, read) => {
     let new-patch = state.patch
     let _ = new-patch.remove(key, default: none)
 
@@ -189,8 +191,8 @@
   /// -> array<function>
   sub-ops,
 ) = (
-  (state, reader) => {
-    let curr = reader(state, key)
+  (state, read) => {
+    let curr = read(key)
     let sub-target = if type(curr) == dictionary { curr } else { (:) }
 
     let new-sub-result = batch(sub-target, sub-ops)
@@ -201,8 +203,33 @@
 )
 
 #let merge(other) = (
-  (state, reader) => {
+  (state, read) => {
     let new-patch = state.patch + other
+    (base: state.base, patch: new-patch)
+  },
+)
+
+/// Merges a dictionary deeply into the current state.
+///
+/// Unlike `merge` (which is shallow), this operation recursively merges
+/// nested dictionaries.
+///
+/// -> operation
+#let merge-deep(
+  /// The dictionary to merge.
+  /// -> dictionary
+  other,
+) = (
+  (state, reader) => {
+    let new-patch = state.patch
+
+    // Iterate over the keys we want to merge in
+    for (key, val) in other {
+      let curr = reader(key)
+      let merged = collection.merge-deep(curr, val)
+      new-patch.insert(key, merged)
+    }
+
     (base: state.base, patch: new-patch)
   },
 )

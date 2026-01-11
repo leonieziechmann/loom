@@ -96,6 +96,48 @@
   schema: schema,
 )
 
+/// Matches a value exactly (Strict Equality).
+///
+/// Use this to match a specific value (like a Type object) without triggering
+/// the engine's type-checking logic.
+///
+/// # Example
+/// ```typ
+/// // Matches the type `int` itself, not the number 1.
+/// matcher.exact(int)
+/// ```
+///
+/// -> dictionary
+#let exact(
+  /// The value to match exactly.
+  /// -> any
+  value,
+) = (
+  (_SIG_KEY): _SIG_VAL,
+  type: "matcher-exact",
+  value: value,
+)
+
+/// Matches if the value is an instance of the given type.
+///
+/// Use this to explicitly enforce a type check, even when `match_types: true`
+/// is active (which would normally switch types to equality checking).
+///
+/// # Example
+/// ```typ
+/// matcher.instance(int) // Matches 1, 2, 3...
+/// ```
+///
+/// -> dictionary
+#let instance(
+  /// The expected type.
+  /// -> type
+  target,
+) = (
+  (_SIG_KEY): _SIG_VAL,
+  type: "matcher-instance",
+  target: target,
+)
 
 // --- 2. ENGINE ---
 
@@ -136,6 +178,13 @@
       return true
     }
 
+    if expected.type == "matcher-exact" {
+      return value == expected.value
+    }
+    if expected.type == "matcher-instance" {
+      return type(value) == expected.target
+    }
+
     if expected.type == "matcher-choice" {
       return expected.options.any(opt => match(value, opt, strict: strict))
     }
@@ -154,7 +203,11 @@
   // B. Check Syntax (By Example)
 
   // 1. Type
-  if type(expected) == type { return type(value) == expected }
+  if type(expected) == type {
+    return (
+      type(value) == expected or (type(value) == type and value == expected)
+    )
+  }
 
   // 2. Tuple (Array)
   if type(expected) == array {

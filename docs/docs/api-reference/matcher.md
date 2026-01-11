@@ -36,19 +36,32 @@ matcher.match(value, expected, strict: false)
 
 For fixed structures where you know the exact keys or length, use standard Typst syntax.
 
-### Types & Literals
+### Types & Literals (Hybrid Matching)
 
-Matches exact values or specific types.
+A type in the schema (e.g., `int`) performs a **Hybrid Match**. It matches:
+
+1. **Instances** of that type (e.g., `10`).
+2. The **Type Object** itself (e.g., `int`).
+
+This flexibility supports both standard data validation and meta-programming/configuration scenarios.
 
 ```typ
+// 1. Instance Matching (Standard)
 matcher.match(10, int)       // true
-matcher.match("foo", "foo")  // true
-matcher.match("bar", "foo")  // false
+matcher.match("foo", str)    // true
 
-// 'auto' matches the literal value `auto`
+// 2. Equality Matching (Meta-programming)
+matcher.match(int, int)      // true
+matcher.match(int, float)    // false
+
+// 3. Literals
+matcher.match("foo", "foo")  // true
 matcher.match(auto, auto)    // true
-matcher.match("foo", auto)   // false
 ```
+
+:::note Controlling Specificity
+If you need to be more specific (e.g., "Must be a number, not the type `int`" or "Must be the type object `int` exactly"), use the **[Strict Descriptors](#strict-descriptors-types)** `instance` and `exact` documented below.
+:::
 
 ### Tuples (Fixed Arrays)
 
@@ -83,9 +96,49 @@ By default, `match` allows extra keys in dictionaries (partial matching). To for
 
 ## Descriptors ("By Description")
 
-For logical operations, open-ended collections (lists/maps of unknown size), or wildcards, use these helper functions.
+For logical operations, open-ended collections, or strict type constraints, use these helper functions.
 
-### `any` (Wildcard)
+### Strict Descriptors (Types)
+
+Use these when the default Hybrid Matching behavior is too broad.
+
+#### `instance`
+
+Strictly enforces that the value is an **instance** of the type. Rejects the type object itself.
+
+```typ
+matcher.instance(type)
+```
+
+**Example:**
+
+```typ
+let pattern = matcher.instance(int)
+
+matcher.match(10, pattern)   // true
+matcher.match(int, pattern)  // false (Rejected!)
+```
+
+#### `exact`
+
+Strictly enforces **equality**. Use this to match specific values or type objects exactly, bypassing instance checks.
+
+```typ
+matcher.exact(value)
+```
+
+**Example:**
+
+```typ
+let pattern = matcher.exact(int)
+
+matcher.match(int, pattern)  // true
+matcher.match(10, pattern)   // false (Rejected!)
+```
+
+### Logical & Collection Descriptors
+
+#### `any` (Wildcard)
 
 Matches **anything**. Use this when a field allows any value.
 
@@ -93,14 +146,7 @@ Matches **anything**. Use this when a field allows any value.
 matcher.any()
 ```
 
-**Example:**
-
-```typ
-matcher.match(none, matcher.any()) // true
-matcher.match(100, matcher.any())  // true
-```
-
-### `choice`
+#### `choice`
 
 Matches if **any** of the provided options match (Logic OR).
 
@@ -115,7 +161,7 @@ matcher.choice(..options)
 let id-schema = matcher.choice(int, str)
 ```
 
-### `many`
+#### `many`
 
 Matches an array of **any length** where every item matches the schema (Homogeneous List).
 
@@ -130,7 +176,7 @@ matcher.many(schema)
 let numbers = matcher.many(int)
 ```
 
-### `dict`
+#### `dict`
 
 Matches a dictionary of **any size** where every value matches the schema (Homogeneous Map).
 

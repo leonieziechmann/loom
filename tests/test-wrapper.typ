@@ -10,5 +10,5 @@
 #let data-motif = loom.motif.data
 #let content-motif = loom.motif.content
 
-#let debug = loom.prebuild-moitf.debug
-#let apply = loom.prebuild-moitf.apply
+#let debug = loom.prebuild-motif.debug
+#let apply = loom.prebuild-motif.apply
