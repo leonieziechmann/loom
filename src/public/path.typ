@@ -1,1 +1,4 @@
-#import "../data/path.typ": get, append, to-string, contains, parent, parent-kind, parent-is, depth, current, current-kind
+#import "../data/path.typ": (
+  append, contains, current, current-kind, depth, get, parent, parent-is,
+  parent-kind, to-string,
+)

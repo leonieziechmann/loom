@@ -52,19 +52,20 @@
   ctx,
   /// Named arguments representing the variables to inject.
   /// -> ..(array | dictionary)
-  ..args
+  ..args,
 ) = {
   let updates = (:)
 
   for (key, value-container) in args.named() {
     assert-types(value-container, array, dictionary)
-    
-    let (value, fallback) = if type(value-container) == dictionary { (value-container.value, value-container.default) } 
-      else { value-container }
-    
-    if value != auto { updates.insert(key, value) }
-    else if key in ctx and ctx.at(key) != auto {}
-    else { updates.insert(key, fallback) }
+
+    let (value, fallback) = if type(value-container) == dictionary {
+      (value-container.value, value-container.default)
+    } else { value-container }
+
+    if value != auto { updates.insert(key, value) } else if (
+      key in ctx and ctx.at(key) != auto
+    ) {} else { updates.insert(key, fallback) }
   }
 
   let updated-keys = updates.keys()
@@ -77,11 +78,11 @@
 /// -> any
 #let get-system-field(
   /// -> dictionary
-  ctx, 
+  ctx,
   /// -> str
   field,
   /// -> any
-  default: none
+  default: none,
 ) = collection.get(ctx, "sys", field, default: default)
 
 /// Updates values in the reserved `sys` namespace.
@@ -94,5 +95,5 @@
   /// -> dictionary
   ctx,
   /// -> ..any
-  ..args
+  ..args,
 ) = collection.merge-deep(ctx, (sys: args.named()))

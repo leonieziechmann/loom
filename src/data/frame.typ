@@ -40,7 +40,7 @@
   assert-types(kind, str)
   assert-types(key, array, none)
   assert-types(path, array)
-  
+
   (
     type: "frame",
     kind: kind,
@@ -59,11 +59,11 @@
 #let is-frame(
   /// The value to check.
   /// -> any
-  data
+  data,
 ) = {
   if not type(data) == dictionary { return false }
   if not data.at("type", default: none) == "frame" { return false }
-  
+
   ("type", "kind", "key", "path", "signal", "sys")
     .map(f => f in data)
     .fold(true, (acc, x) => acc and x)
@@ -78,10 +78,10 @@
 #let add-sys(
   /// The target frame.
   /// -> frame
-  frame, 
+  frame,
   /// The system fields to merge.
   /// -> dictionary
-  sys-ctx
+  sys-ctx,
 ) = {
   assert-types(frame, dictionary)
   assert-types(sys-ctx, dictionary)
@@ -96,10 +96,10 @@
 #let set-sys(
   /// The target frame.
   /// -> frame
-  frame, 
+  frame,
   /// The new system dictionary.
   /// -> dictionary
-  sys-ctx
+  sys-ctx,
 ) = {
   assert-types(frame, dictionary)
   assert-types(sys-ctx, dictionary)
@@ -121,7 +121,7 @@
 #let normalize(
   /// The raw data returned by a measure function or child.
   /// -> any
-  data
+  data,
 ) = {
   if data == none { return () }
 
@@ -131,10 +131,14 @@
     (data,)
   } else {
     panic(
-      "Loom Data Contract Violation." +
-      "Expected a `frame` or `array of frames`, but got: `" + str(type(data)) + "` " +
-      "Value: " + repr(data) + " " + 
-      "Did you forget to wrap your data in a frame or use a primitive that does it for you?"
+      "Loom Data Contract Violation."
+        + "Expected a `frame` or `array of frames`, but got: `"
+        + str(type(data))
+        + "` "
+        + "Value: "
+        + repr(data)
+        + " "
+        + "Did you forget to wrap your data in a frame or use a primitive that does it for you?",
     )
   }
 }

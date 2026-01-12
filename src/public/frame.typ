@@ -1,1 +1,1 @@
-#import "../data/frame.typ": new, is-frame, add-sys, set-sys, normalize
+#import "../data/frame.typ": add-sys, is-frame, new, normalize, set-sys

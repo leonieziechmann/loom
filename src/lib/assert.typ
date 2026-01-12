@@ -30,19 +30,20 @@
 #let assert-types(
   /// The value to check
   /// -> any
-  value, 
+  value,
   /// A variable list of allowed types (e.g., `int`, `str`) or specific allowed values (e.g., `none`, `auto`).
   /// -> ..type | any
-  ..types
+  ..types,
 ) = assert(
   type(value) in types.pos() or value in types.pos(),
   message: (
     "Expected value of type ",
-    types.pos()
+    types
+      .pos()
       .filter(typ => type(typ) in (int, float, str, bool, type))
       .map(typ => {
         if type(typ) in (int, float, str, type) { "`" + str(typ) + "`" }
-        if type(typ) == bool { if typ { "`true`" } else { "`false`" }}
+        if type(typ) == bool { if typ { "`true`" } else { "`false`" } }
       })
       .join(", ", last: " or "),
     " but got `",

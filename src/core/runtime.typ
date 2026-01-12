@@ -10,7 +10,7 @@
  * ----------------------------------------------------------------------------
  * Description:
  * Orchestrates the Loom execution lifecycle.
- * Manages the multi-pass measure loop (fixed-point iteration) and the final 
+ * Manages the multi-pass measure loop (fixed-point iteration) and the final
  * draw pass, handling context injection and convergence checks.
  * ----------------------------------------------------------------------------
  */
@@ -42,7 +42,9 @@
   inputs: (:),
   /// Callback executed if the engine fails to converge within `max-passes`.
   /// -> function
-  handle-nonconvergence: (ctx, iterations, last-payload, current-payload) => none,
+  handle-nonconvergence: (ctx, iterations, last-payload, current-payload) => {
+    none
+  },
   /// Maximum total passes (measure + draw). Defaults to 2.
   /// -> int
   max-passes: 2,
@@ -56,14 +58,14 @@
 ) = {
   assert-types(observer, none, array)
   assert-types(director, none, content)
-  
+
   // Initial Context Setup
   let base-ctx = empty-context + inputs
   base-ctx = set-system-fields(base-ctx, debug: debug, key: key)
 
-  let current-payload = () 
+  let current-payload = ()
   let fix-point-reached = false
-  
+
   let measure-limit = if max-passes > 1 { max-passes - 1 } else { 0 }
 
   // --- PHASE 1: MEASURE LOOP (bis Fixpunkt) ---
@@ -76,7 +78,7 @@
       measure-ctx,
       director,
       key: key,
-      draw: false
+      draw: false,
     )
 
     // CHECK FOR CONVERGENCE (FIXED POINT)
@@ -90,7 +92,7 @@
     if i == measure-limit - 1 and measure-limit > 1 {
       [#handle-nonconvergence(measure-ctx, i + 1, current-payload, new-payload)]
     }
-    
+
     current-payload = new-payload
   }
 
@@ -103,21 +105,23 @@
     draw-ctx,
     director,
     key: key,
-    draw: true
+    draw: true,
   )
 
   if observer == none {
     final-director
   } else {
     let final-observer = observer.map(observer_ => {
-      engine.interwine(
-        draw-ctx,
-        observer_,
-        key: key,
-        draw: true
-      ).at(0)
+      engine
+        .interwine(
+          draw-ctx,
+          observer_,
+          key: key,
+          draw: true,
+        )
+        .at(0)
     })
-    
+
     (director: final-director, observer: final-observer)
   }
 }

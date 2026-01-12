@@ -34,9 +34,9 @@
   node,
   /// The namespace label to validate against.
   /// -> label
-  key
+  key,
 ) = {
-  if node == none or node.func() != metadata { return none }  
+  if node == none or node.func() != metadata { return none }
 
   if node.at("label", default: none) != key { return none }
 
@@ -66,16 +66,16 @@
 #let intertwine(
   /// The current context dictionary.
   /// -> dictionary
-  ctx, 
+  ctx,
   /// The content node to process.
   /// -> content
-  node, 
+  node,
   /// The namespace label used to identify Loom components.
   /// -> label
-  key: <motif>, 
+  key: <motif>,
   /// If `true`, generates visual output. If `false`, performs a dry-run for data collection.
   /// -> bool
-  draw: false
+  draw: false,
 ) = {
   // Base Case: Empty node
   if node == none { return (none, ()) }
@@ -83,7 +83,6 @@
   // --- CASE 1: COMPONENT (The core logic) ---
   let component = get-component(node, key)
   if component != none {
-
     // 1. SCOPE PHASE
     // Allow the component to modify the context for its children.
     // This happens before we visit the children.
@@ -92,11 +91,18 @@
 
     // 2. AUTO-TRAVERSAL
     // The engine automatically visits the body with the new context.
-    let (body-content, children-public) = intertwine(child-ctx, component.body, key: key, draw: draw)
+    let (body-content, children-public) = intertwine(
+      child-ctx,
+      component.body,
+      key: key,
+      draw: draw,
+    )
 
     // Prepare input data for the measure function.
     // Ensure we always pass an array of public models, filtering out 'none'.
-    let raw-data = if type(children-public) == array { children-public } else { (children-public,) }
+    let raw-data = if type(children-public) == array { children-public } else {
+      (children-public,)
+    }
     let clean-data = raw-data.filter(d => d != none)
 
     // 3. MEASURE PHASE
@@ -113,10 +119,10 @@
     // 4. DRAW PHASE
     // Only executed if the draw flag is set.
     // Combines the calculated models with the processed body content.
-    let content = if draw { 
-      (component.draw)(child-ctx, my-public, my-view, body-content) 
-    } else { 
-      none 
+    let content = if draw {
+      (component.draw)(child-ctx, my-public, my-view, body-content)
+    } else {
+      none
     }
 
     return (content, frame.normalize(my-public))
@@ -125,7 +131,9 @@
   // --- CASE 2: CONTAINER (Grid, Stack, Sequence) ---
   if node.has("children") {
     // Recursively intertwines all children
-    let results = node.children.enumerate()
+    let results = node
+      .children
+      .enumerate()
       .map(((i, child)) => {
         let inner-ctx = set-system-fields(ctx, relative-id: i)
         let result = intertwine(inner-ctx, child, key: key, draw: draw)
@@ -133,12 +141,12 @@
       })
 
     // A. Content Aggregation (for rendering)
-    let merged-content = if draw { 
+    let merged-content = if draw {
       // For sequences, we join the content.
       // For layouts (Grid/Stack), this is handled below.
-      results.map(r => r.at(0)).join() 
-    } else { 
-      none 
+      results.map(r => r.at(0)).join()
+    } else {
+      none
     }
 
     // B. Data Aggregation
@@ -161,7 +169,12 @@
 
   // --- CASE 3: WRAPPER (Block, Align, Styles) ---
   if node.has("body") {
-    let (child-content, signals) = intertwine(ctx, node.body, key: key, draw: draw)
+    let (child-content, signals) = intertwine(
+      ctx,
+      node.body,
+      key: key,
+      draw: draw,
+    )
 
     let content = if draw {
       let args = node.fields()
@@ -173,19 +186,24 @@
       if "alignment" in args { pos-args.push(args.remove("alignment")) }
       if "angle" in args { pos-args.push(args.remove("angle")) }
       if "dest" in args { pos-args.push(args.remove("dest")) }
-      if "count" in args {  pos-args.push(args.remove("count")) }
+      if "count" in args { pos-args.push(args.remove("count")) }
 
       // Reconstruct the wrapper with the processed child content
       (node.func())(..pos-args, ..args, child-content)
-    } else { 
-    none 
-  }
+    } else {
+      none
+    }
     return (content, signals)
   }
 
   // --- CASE 4: GENERIC WRAPPER (fallback for elements with 'child') ---
   if node.has("child") {
-    let (child-content, signals) = intertwine(ctx, node.child, key: key, draw: draw)
+    let (child-content, signals) = intertwine(
+      ctx,
+      node.child,
+      key: key,
+      draw: draw,
+    )
 
     let content = if draw {
       let args = node.fields()
@@ -194,11 +212,11 @@
       let pos-args = ()
 
       if "styles" in args { pos-args.push(args.remove("styles")) }
-      
+
       // Best effort reconstruction
       (node.func())(..args, child-content, ..pos-args)
-    } else { 
-      none 
+    } else {
+      none
     }
     return (content, signals)
   }

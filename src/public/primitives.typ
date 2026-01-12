@@ -1,1 +1,3 @@
-#import "../data/primitives.typ": motif, managed-motif, compute-motif, data-motif, content-motif
+#import "../data/primitives.typ": (
+  compute-motif, content-motif, data-motif, managed-motif, motif,
+)

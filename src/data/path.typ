@@ -15,7 +15,7 @@
  * ----------------------------------------------------------------------------
  */
 
-#import "../core/context.typ": set-system-fields, get-system-field
+#import "../core/context.typ": get-system-field, set-system-fields
 #import "../lib/assert.typ": assert-types
 
 /// Retrieves the current path array from the context.
@@ -23,7 +23,7 @@
 /// -> array<(str, int)>
 #let get(
   /// -> dictionary
-  ctx
+  ctx,
 ) = get-system-field(ctx, "path", default: ())
 
 /// Pushes a new segment onto the path.
@@ -38,7 +38,7 @@
   ctx,
   /// The kind of the new path segment (e.g., "row").
   /// -> str
-  kind
+  kind,
 ) = {
   let sys = ctx.at("sys", default: (:))
   let current-path = sys.at("path", default: ())
@@ -46,7 +46,7 @@
 
   // Append the new tuple (kind, unique-index)
   sys.path = current-path + ((kind, current-id),)
-  
+
   return ctx + (sys: sys)
 }
 
@@ -60,14 +60,12 @@
 /// -> str
 #let to-string(
   /// -> dictionary
-  ctx, 
+  ctx,
   /// Separator between segments.
   /// -> str
-  separator: ">"
+  separator: ">",
 ) = {
-  get(ctx)
-    .map(((k, i)) => k + "(" + str(i) + ")")
-    .join(separator) 
+  get(ctx).map(((k, i)) => k + "(" + str(i) + ")").join(separator)
 }
 
 /// Checks if the current path contains a specific component kind.
@@ -84,10 +82,10 @@
   /// If true, checks the entire path including the current tip.
   /// If false, checks only the ancestors (parents).
   /// -> bool
-  include-current: true
+  include-current: true,
 ) = {
   let path = get(ctx)
-  
+
   // If we only care about ancestors, temporarily remove the last element
   if not include-current { let _ = path.pop() }
 
@@ -103,7 +101,7 @@
 /// -> (str, int) | none
 #let parent(
   /// -> dictionary
-  ctx
+  ctx,
 ) = {
   let path = get(ctx)
   // We need at least 2 elements: [grandparent, parent, current] -> parent is -2
@@ -115,7 +113,7 @@
 /// -> str | none
 #let parent-kind(
   /// -> dictionary
-  ctx
+  ctx,
 ) = parent(ctx).at(0)
 
 /// Checks if the immediate parent matches one of the provided kinds.
@@ -125,7 +123,7 @@
   /// -> dictionary
   ctx,
   /// -> ..str
-  ..kinds
+  ..kinds,
 ) = {
   let p-kind = parent-kind(ctx)
   p-kind in kinds.pos()
@@ -136,7 +134,7 @@
 /// -> int
 #let depth(
   /// -> dictionary
-  ctx
+  ctx,
 ) = get(ctx).len()
 
 /// Retrieves the full tuple `(kind, id)` of the current component (the tip of the path).
@@ -144,7 +142,7 @@
 /// -> (str, int) | none
 #let current(
   /// -> dictionary
-  ctx
+  ctx,
 ) = get(ctx).last(default: none)
 
 /// Retrieves just the "kind" string of the current component.
@@ -152,7 +150,7 @@
 /// -> str | none
 #let current-kind(
   /// -> dictionary
-  ctx
+  ctx,
 ) = {
   let current = current(ctx)
   if current != none { current.at(0) } else { none }

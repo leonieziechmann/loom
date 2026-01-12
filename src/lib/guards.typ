@@ -10,7 +10,7 @@
  * ----------------------------------------------------------------------------
  * Description:
  * Provides validation functions to enforce architectural constraints.
- * Used by components to assert their position in the hierarchy or the 
+ * Used by components to assert their position in the hierarchy or the
  * presence of specific context data.
  * ----------------------------------------------------------------------------
  */
@@ -33,7 +33,7 @@
   let current = path.current(ctx)
   let me = if current != none { current.at(0) } else { "Unknown" }
   let target-list = targets.map(t => "`" + t + "`").join(", ", last: " or ")
-  
+
   "Component `" + me + "` " + relation + " " + target-list + "."
 }
 
@@ -48,10 +48,10 @@
 #let assert-inside(
   /// The current context.
   /// -> dictionary
-  ctx, 
+  ctx,
   /// Allowed ancestor kinds.
   /// -> ..str
-  ..ancestors
+  ..ancestors,
 ) = {
   assert-types(ctx, dictionary)
   let kinds = ancestors.pos()
@@ -71,10 +71,10 @@
 /// -> bool
 #let assert-not-inside(
   /// -> dictionary
-  ctx, 
+  ctx,
   /// Forbidden ancestor kinds.
   /// -> ..str
-  ..ancestors
+  ..ancestors,
 ) = {
   assert-types(ctx, dictionary)
   let kinds = ancestors.pos()
@@ -93,19 +93,23 @@
 /// -> bool
 #let assert-direct-parent(
   /// -> dictionary
-  ctx, 
+  ctx,
   /// Allowed parent kinds.
   /// -> ..str
-  ..parents
+  ..parents,
 ) = {
   assert-types(ctx, dictionary)
   let kinds = parents.pos()
   kinds.map(k => assert-types(k, str))
 
   let parent = path.parent-kind(ctx)
-  
+
   if parent not in kinds {
-    return _fail(ctx, _error-msg(ctx, "requires a direct parent of kind", kinds))
+    return _fail(ctx, _error-msg(
+      ctx,
+      "requires a direct parent of kind",
+      kinds,
+    ))
   }
   return true
 }
@@ -117,7 +121,7 @@
 /// -> bool
 #let assert-root(
   /// -> dictionary
-  ctx
+  ctx,
 ) = {
   assert-types(ctx, dictionary)
   if path.parent(ctx) != none {
@@ -135,14 +139,21 @@
   /// -> dictionary
   ctx,
   /// -> int
-  max
+  max,
 ) = {
   assert-types(ctx, dictionary)
   assert-types(max, int)
-  
+
   let depth = path.depth(ctx)
   if depth > max {
-    return _fail(ctx, "Maximum nesting depth of " + str(max) + " exceeded (Current: " + str(depth) + ").")
+    return _fail(
+      ctx,
+      "Maximum nesting depth of "
+        + str(max)
+        + " exceeded (Current: "
+        + str(depth)
+        + ").",
+    )
   }
   return true
 }
@@ -152,16 +163,18 @@
 /// -> bool
 #let assert-has-key(
   /// -> dictionary
-  ctx, 
+  ctx,
   /// The required key.
   /// -> str
-  key, 
+  key,
   /// Optional custom error message.
   /// -> str | none
-  msg: none
+  msg: none,
 ) = {
   if key not in ctx {
-    let m = if msg == none { "Missing required context key: `" + key + "`" } else { msg }
+    let m = if msg == none {
+      "Missing required context key: `" + key + "`"
+    } else { msg }
     return _fail(ctx, m)
   }
   return true
@@ -180,14 +193,22 @@
   key,
   /// The allowed values.
   /// -> ..any
-  ..allowed
+  ..allowed,
 ) = {
   assert-has-key(ctx, key)
   let val = ctx.at(key)
   let options = allowed.pos()
-  
+
   if val not in options {
-    return _fail(ctx, "Context key `" + key + "` has invalid value `" + repr(val) + "`. Expected one of: " + options.map(repr).join(", "))
+    return _fail(
+      ctx,
+      "Context key `"
+        + key
+        + "` has invalid value `"
+        + repr(val)
+        + "`. Expected one of: "
+        + options.map(repr).join(", "),
+    )
   }
   return true
 }

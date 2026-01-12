@@ -14,7 +14,7 @@
  * ----------------------------------------------------------------------------
  */
 
-#import "../core/context.typ": scope, get-system-field
+#import "../core/context.typ": get-system-field, scope
 #import "../data/primitives.typ": motif
 #import "assert.typ": assert-types
 
@@ -34,23 +34,25 @@
 #let debug-motif(
   /// The namespace key.
   /// -> label
-  key: <motif>, 
+  key: <motif>,
   /// If `true`, forces the debug output. If `false`, hides it.
   /// If `auto`, it inherits the global debug state from the context.
   /// -> bool | auto
   display: auto,
   /// -> ..any
-  ..args, 
+  ..args,
   /// The content to wrap.
   /// -> content
-  body
+  body,
 ) = {
   assert-types(display, auto, bool)
-  
+
   motif(
     key: key,
     measure: (ctx, children-data) => {
-      let show-children = if display == auto { get-system-field(ctx, "debug", default: false) } else { display }
+      let show-children = if display == auto {
+        get-system-field(ctx, "debug", default: false)
+      } else { display }
 
       // Return the children-data as the view so it can be printed in the draw phase
       return (children-data, if show-children { children-data } else { none })
@@ -80,7 +82,7 @@
 #let apply-motif(
   /// The namespace key.
   /// -> label
-  key: <motif>, 
+  key: <motif>,
   /// Named arguments are injected into the scope.
   /// -> ..any
   ..args,
@@ -90,11 +92,16 @@
 ) = {
   motif(
     key: key,
-    scope: (ctx) => scope(ctx,
-      ..(args.named().pairs()
-        .filter(((_, value)) => value != auto)
-        .map(((key, value)) => (key, (value, value)))
-        .to-dict())
+    scope: ctx => scope(
+      ctx,
+      ..(
+        args
+          .named()
+          .pairs()
+          .filter(((_, value)) => value != auto)
+          .map(((key, value)) => (key, (value, value)))
+          .to-dict()
+      ),
     ),
     body,
   )
