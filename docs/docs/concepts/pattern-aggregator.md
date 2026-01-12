@@ -47,21 +47,23 @@ We use `content-motif` for the children because they have a visual presence.
 
 ```typ
 // CHILD: Renders itself AND emits a signal
-#let item(name, price) = content-motif(
-  measure: (ctx, body) => (price: price), // Emit price signal
+#let item(name, price) = manged-motif(
+  "item",
+  measure: (ctx, body) => ((price: price),)*2, // Emit price signal
   draw: (ctx, body) => {
     block(width: 100%, inset: 2pt)[#name #h(1fr) #price]
   }
 )
 
 // PARENT: Renders children THEN adds total
-#let receipt(body) = motif(
+#let receipt(body) = managed-motif(
+  "receipt",
   measure: (ctx, children-signals) => {
     // 1. Aggregate immediately (Same-Pass)
-    let total = children-signals.map(s => s.price).sum()
+    let total = children-signals.map(s => s.signal.price).sum()
 
     // 2. Pass total to the View
-    ( (total: total), (total: total) )
+    ((total: total), (total: total))
   },
   draw: (ctx, public, view, body) => {
     block(stroke: 1pt, inset: 1em)[
@@ -99,10 +101,11 @@ We use `data-motif` for the children. This is a shorthand that skips the `draw` 
 )
 
 // PARENT: Builds the view entirely from signals
-#let price-table(body) = motif(
-  measure: (ctx, children-signals) => {
+#let price-table(body) = manged-motif(
+  "price-table",
+  measure: (ctx, children) => {
     // We pass the raw signals to the view to build the table
-    ( (count: children-signals.len()), children-signals )
+    ((count: children-signals.len()), children.map(c => c.signal))
   },
   draw: (ctx, public, signals, body) => {
     // 'body' is ignored/empty because children are data-motifs!

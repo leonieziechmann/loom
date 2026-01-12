@@ -28,7 +28,7 @@ We have broken down the setup process into two simple steps:
 ## Why this setup?
 
 Loom is not just a library of pre-made widgets; it is an _engine_ for building your own.
-The setup might look slightly different from other packages (involving a `lib.typ` or wrapper file), but this architecture is crucial for enabling the "Time Travel" features that allow your components to communicate.
+The setup might look slightly different from other packages (involving a `loom-wrapper.typ` or wrapper file), but this architecture is crucial for separating your loom components in
 
 Ready? Let's get the engine running.
 

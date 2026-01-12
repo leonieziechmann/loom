@@ -69,14 +69,15 @@ Sometimes, you don't care _where_ a component is, but you care _what_ data it ha
 While the **Provider Pattern** suggests using defaults (`auto`), some components simply cannot function without specific data.
 
 ```typ
-#let plot-point(x, y) = motif(
-  measure: (ctx, _) => {
+#let plot-point(x, y) = data-motif(
+  "plot-point",
+  measure: (ctx) => {
     // RULE: The coordinate system MUST be defined.
     // We can't default this; if it's missing, the plot is invalid.
     guards.assert-has-key(ctx, "plot-axis-x")
     guards.assert-has-key(ctx, "plot-axis-y")
 
-    ( (x: x, y: y), none )
+    (x: x, y: y)
   },
   // ...
 )
@@ -87,7 +88,8 @@ While the **Provider Pattern** suggests using defaults (`auto`), some components
 Some components only make sense if they are the **Director** (the root of the Loom weave). For example, a `book` or `presentation` wrapper.
 
 ```typ
-#let presentation(body) = motif(
+#let presentation(body) = manged-motif(
+  "presentation",
   measure: (ctx, _) => {
     // RULE: I must be the top-level component.
     guards.assert-root(ctx)

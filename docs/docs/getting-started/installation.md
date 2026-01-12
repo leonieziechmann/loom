@@ -6,7 +6,7 @@ sidebar_position: 1
 
 **Setting up the Engine**
 
-Loom is distributed as a standard Typst package. However, because Loom is a meta-engine that manages its own memory and state, you shouldn't just import it directly into every file.
+Loom is distributed as a standard Typst package. However, because Loom is a meta-engine that manages its own context and state, you shouldn't just import it directly into every file.
 
 Instead, we use the **Wrapper Pattern** to create a dedicated instance for your project.
 
@@ -24,7 +24,7 @@ _(Note: Check the [Typst Universe](https://typst.app/universe/package/loom) for 
 
 To keep your code clean and prevent namespace collisions, you should initialize Loom **once** in a central library file and export the tools you need.
 
-Create a file named `loom-wrapper.typ` (or `loomw.typ`) in your project root.
+Create a file named `loom-wrapper.typ` (or `lw.typ`) in your project root.
 
 ```typ title="loom-wrapper.typ"
 #import "@preview/loom:0.1.0"

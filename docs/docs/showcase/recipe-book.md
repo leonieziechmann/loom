@@ -67,7 +67,6 @@ First, look at how clean the user's code is. They just write a story.
   While roasting, chop #ing.onion(0.5).
   Sauté until translucent, then add #ing.stock(250).
 ]
-
 ```
 
 ## 2. The Ingredient (The Data Source)
@@ -96,7 +95,7 @@ The ingredient component is the workhorse. It does two things:
     )
 
     // 3. PREPARE VIEW
-    (signal, (amount: final-amount, unit: unit))
+    (signal,)*2
   },
   draw: (ctx, public, view, _) => {
     // Render the scaled text (e.g., "1500g")
@@ -104,7 +103,6 @@ The ingredient component is the workhorse. It does two things:
   },
   none
 )
-
 ```
 
 ## 3. The Step (Intermediate Aggregation)
@@ -116,10 +114,10 @@ This is a cool detail: The `step` component aggregates ingredients _locally_ to 
   "step",
   measure: (ctx, children) => {
     // Filter only the ingredients inside THIS step
-    let local-ings = children.map(c => c.signal).filter(s => s.kind == "ing")
+    let local-ings = loom.query.select-signals(children, "ing")
 
     // Pass them to the view (but also bubble them up!)
-    (local-ings, (number: number, local-ings: local-ings))
+    (local-ings,)*2
   },
   draw: (ctx, public, view, body) => {
     grid(
@@ -143,13 +141,16 @@ Finally, the root component gathers everything to build the Shopping List.
 #let recipe-motif(serves, base, body) = managed-motif(
   "recipe",
   // 1. INJECT SCALING FACTOR
-  scope: (ctx) => ctx + (scale-factor: serves / base),
+  scope: (ctx) => loom.mutator.batch(ctx, {
+    import loom.mutator: *
+    put("scale-factor", serves / base)
+  }),
 
   measure: (ctx, children) => {
     // 2. DEEP SEARCH
     // We collect 'step' signals, which contain arrays of 'ing' signals.
     // We flatten them to get a master list of all ingredients.
-    let all-ingredients = children.map(c => c.signal).flatten()
+    let all-ingredients = loom.query.collect-signals(children, kind: "ing")
 
     // 3. AGGREGATE (Shopping List)
     let shopping-list = (:)

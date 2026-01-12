@@ -28,7 +28,7 @@ This showcase demonstrates how Loom can manage complex game rules and non-linear
 In standard Typst, creating this document is difficult because:
 
 1.  **Linearity:** You cannot define sidebar content _inside_ your main story text and expect it to jump to the left column.
-2.  **Logic Separation:** Calculating a modifier (e.g., Score 16 $\rightarrow$ +3) usually requires mixing functions into your content.
+2.  **Logic Separation:** Calculating a modifier (e.g., Score 16 -> +3) usually requires mixing functions into your content.
 3.  **responsiveness:** You want the _same_ component to look different if it's in a wide body vs. a narrow sidebar.
 
 ## The Loom Solution

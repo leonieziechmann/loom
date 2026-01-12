@@ -21,7 +21,7 @@ We will build a simple **Note Box** component that:
 
 ## 1. The Blueprint
 
-Open your `main.typ` file. Ensure you have imported your wrapper as described in the [Installation](https://www.google.com/search?q=./installation) guide.
+Open your `main.typ` file. Ensure you have imported your wrapper as described in the [Installation](./installation) guide.
 
 To define a visual component, we use the `content-motif` constructor. This is the simplest type of Motif—it just takes a `draw` function.
 
@@ -31,7 +31,7 @@ To define a visual component, we use the `content-motif` constructor. This is th
 // Define the component
 #let note(title, body) = content-motif(
   // The 'draw' phase determines how the component looks.
-  draw: (ctx, body) => {
+  draw: (ctx, evaluated-body) => {
     block(
       fill: luma(240),
       stroke: (left: 4pt + blue),
@@ -39,22 +39,24 @@ To define a visual component, we use the `content-motif` constructor. This is th
       width: 100%
     )[
       *#title* \
-      #body
+      #evaluated-body
     ]
-  }
+  },
+  // Passing body to motif to allow for body ast evaluation.
+  body
 )
 ```
 
 ### Understanding the Signature
 
-Look at the `draw` function: `(ctx, body) => ...`.
+Look at the `draw` function: `(ctx, evaluated-body) => ...`.
 
 :::info The Magic Backpack
 The **`ctx` (Context)** parameter is available in almost every Loom lifecycle function. It contains all global state, theme configuration, and parent data. Even if you don't use it now, it's the bridge that connects your component to the rest of the system.
 :::
 
 - **`ctx`:** The context dictionary.
-- **`body`:** This is the content the user puts inside the square brackets `[...]`.
+- **`evaluated-body`:** This is the resulting content after loom has evaluated the body passed to the motif.
 
 ## 2. Using the Component
 
@@ -86,26 +88,34 @@ Because `content-motif` returns a standard Typst function, you can add as many a
 Let's add a `color` argument with a default value.
 
 :::note Closure Capturing
-Notice that the `draw` function doesn't need `title` or `color` passed to it explicitly. Because `draw` is defined _inside_ the `note` function, it automatically captures those variables from the parent scope.
+Notice that the `draw` function doesn't need `title` passed to it explicitly. Because `draw` is defined _inside_ the `note` function, it automatically captures those variables from the parent scope.
 :::
 
 ```typ
-#let note(title, color: blue, body) = content-motif(
+#let note(title, color: auto, body) = content-motif(
+  scope: (ctx) => loom.matcher.batch(ctx, {
+    loom.matcher.derive("color", color, default: blue)
+  }),
   draw: (ctx, body) => {
     block(
       fill: color.lighten(90%),
-      stroke: (left: 4pt + color),
+      stroke: (left: 4pt + ctx.color),
       inset: 1em
     )[
-      #text(fill: color, weight: "bold")[#title] \
+      #text(fill: ctx.color, weight: "bold")[#title] \
       #body
     ]
-  }
+  },
+  body
 )
 
 // Usage
 #note("Success", color: green)[System is operational.]
 #note("Error", color: red)[Connection failed.]
+
+#apply(color: green)[
+  #note("Success")[Now the color is green.]
+]
 ```
 
 ## Summary

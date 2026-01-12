@@ -9,7 +9,7 @@ sidebar_position: 3
 Loom is more than just a library; it is a **Meta-Engine** that changes how you architect Typst documents.
 
 Standard Typst code is linear: it executes from top to bottom.
-Loom code is **Cyclical**: it executes in loops (passes) to resolve dependencies that linear code cannot handle (like knowing the total page count before printing page 1).
+Loom code is **Cyclical**: it executes in loops (passes) to resolve dependencies that linear code cannot handle (such as calculating the total number of quotes before rendering the first page).
 
 ## The Big Picture
 
