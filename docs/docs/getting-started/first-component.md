@@ -43,7 +43,6 @@ To define a visual component, we use the `content-motif` constructor. This is th
     ]
   }
 )
-
 ```
 
 ### Understanding the Signature
@@ -78,7 +77,6 @@ You **must** initialize the Loom engine at the start of your document using `#sh
 #note("Warning")[
   Always remember to initialize the engine!
 ]
-
 ```
 
 ## 3. Adding Props (Arguments)
@@ -108,7 +106,6 @@ Notice that the `draw` function doesn't need `title` or `color` passed to it exp
 // Usage
 #note("Success", color: green)[System is operational.]
 #note("Error", color: red)[Connection failed.]
-
 ```
 
 ## Summary

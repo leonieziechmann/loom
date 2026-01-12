@@ -57,29 +57,35 @@ These functions generate **Operation Objects**. They define _what_ to do, but th
 These functions are not standalone. They must be used inside the `ops` list passed to a `batch` or `nest` call.
 :::
 
+:::tip Path Traversal
+Most operations accept an optional variable number of arguments (`..path`) before the `key` to traverse deeply into nested dictionaries without needing explicit `nest` calls.
+:::
+
 ### `put`
 
 Sets a key to a specific value. Overwrites the value if the key already exists.
 
 ```typ
-put(key, value)
+put(..path, key, value)
 ```
 
-| Parameter | Type  | Default  | Description                     |
-| --------- | ----- | -------- | ------------------------------- |
-| `key`     | `str` | Required | The dictionary key to set.      |
-| `value`   | `any` | Required | The value to assign to the key. |
+| Parameter | Type  | Default  | Description                        |
+| --------- | ----- | -------- | ---------------------------------- |
+| `path`    | `str` | `()`     | Optional path of keys to traverse. |
+| `key`     | `str` | Required | The dictionary key to set.         |
+| `value`   | `any` | Required | The value to assign to the key.    |
 
 ### `ensure`
 
 Sets a value **only if the key is missing** (or `none`).
 
 ```typ
-ensure(key, default-value)
+ensure(..path, key, default-value)
 ```
 
 | Parameter       | Type  | Default  | Description                                    |
 | --------------- | ----- | -------- | ---------------------------------------------- |
+| `path`          | `str` | `()`     | Optional path of keys to traverse.             |
 | `key`           | `str` | Required | The dictionary key to check.                   |
 | `default-value` | `any` | Required | The value to assign if the key does not exist. |
 
@@ -92,11 +98,12 @@ Sets a value, inheriting the previous one if the new value is `auto`.
 - If `value` is set: uses that value.
 
 ```typ
-derive(key, value, default: none)
+derive(..path, key, value, default: none)
 ```
 
 | Parameter | Type  | Default  | Description                                                                      |
 | --------- | ----- | -------- | -------------------------------------------------------------------------------- |
+| `path`    | `str` | `()`     | Optional path of keys to traverse.                                               |
 | `key`     | `str` | Required | The dictionary key to update.                                                    |
 | `value`   | `any` | Required | The new value (or `auto`).                                                       |
 | `default` | `any` | `none`   | Fallback value if `value` is `auto` and the key is missing in the current state. |
@@ -110,11 +117,12 @@ The callback is only executed if the key **already exists** in the dictionary (a
 :::
 
 ```typ
-update(key, callback)
+update(..path, key, callback)
 ```
 
 | Parameter  | Type       | Default  | Description                                                                            |
 | ---------- | ---------- | -------- | -------------------------------------------------------------------------------------- |
+| `path`     | `str`      | `()`     | Optional path of keys to traverse.                                                     |
 | `key`      | `str`      | Required | The dictionary key to update.                                                          |
 | `callback` | `function` | Required | A function `(current) => new` that receives the current value and returns the new one. |
 
@@ -123,23 +131,25 @@ update(key, callback)
 Deletes a key from the dictionary.
 
 ```typ
-remove(key)
+remove(..path, key)
 ```
 
-| Parameter | Type  | Default  | Description                   |
-| --------- | ----- | -------- | ----------------------------- |
-| `key`     | `str` | Required | The dictionary key to remove. |
+| Parameter | Type  | Default  | Description                        |
+| --------- | ----- | -------- | ---------------------------------- |
+| `path`    | `str` | `()`     | Optional path of keys to traverse. |
+| `key`     | `str` | Required | The dictionary key to remove.      |
 
 ### `merge`
 
 Merges another dictionary into the current state.
 
 ```typ
-merge(other-dictionary)
+merge(..path, other-dictionary)
 ```
 
 | Parameter          | Type         | Default  | Description                                     |
 | ------------------ | ------------ | -------- | ----------------------------------------------- |
+| `path`             | `str`        | `()`     | Optional path of keys to traverse.              |
 | `other-dictionary` | `dictionary` | Required | The dictionary to merge into the current state. |
 
 :::warning Shallow Merge
@@ -151,55 +161,44 @@ This operation performs a **shallow merge**. Nested dictionaries in `other-dicti
 Recursively merges another dictionary into the current state.
 
 ```typ
-merge-deep(other-dictionary)
+merge-deep(..path, other-dictionary)
 ```
 
 | Parameter          | Type         | Default  | Description                                                 |
 | ------------------ | ------------ | -------- | ----------------------------------------------------------- |
+| `path`             | `str`        | `()`     | Optional path of keys to traverse.                          |
 | `other-dictionary` | `dictionary` | Required | The dictionary to merge recursively into the current state. |
 
 :::tip Use Case
 Use `merge-deep` when you want to apply a configuration patch that contains nested settings without wiping out the existing sibling keys in those nested objects.
 :::
 
----
+### `ensure-deep`
 
-## Nested Updates
+Ensures that a dictionary structure exists deeply. Unlike `merge-deep`, this treats the input `defaults` as fallback values.
 
-### `nest`
-
-Applies a batch of operations to a sub-dictionary (a child key).
+- If a key exists in the current state, the current value is preserved.
+- If a key is missing, the value from `defaults` is used.
+- Nested dictionaries are merged recursively.
 
 ```typ
-nest(key, sub-ops)
+ensure-deep(..path, defaults)
 ```
 
-| Parameter | Type    | Default  | Description                                                                                     |
-| --------- | ------- | -------- | ----------------------------------------------------------------------------------------------- |
-| `key`     | `str`   | Required | The key of the child dictionary to modify.                                                      |
-| `sub-ops` | `array` | Required | A new list of operations (`put`, `update`, etc.) to apply specifically to the child dictionary. |
+| Parameter  | Type         | Default  | Description                                             |
+| ---------- | ------------ | -------- | ------------------------------------------------------- |
+| `path`     | `str`        | `()`     | Optional path of keys to traverse.                      |
+| `defaults` | `dictionary` | Required | The dictionary containing default structure and values. |
 
-:::note Auto-Initialization
-If `key` does not exist in the parent, or if the value at `key` is `none`, `nest` will automatically initialize it as an empty dictionary `(:)` before applying the operations.
-:::
-
-**Example: Deeply Nested Config**
+**Example:**
 
 ```typ
-#let config = (theme: (dark: false))
+let defaults = (
+  theme: (color: "blue", font: "serif"),
+  meta: (version: 1)
+)
 
-#let new-config = mutator.batch(config, {
-  import mutator: *
-
-  // Update existing nested key
-  nest("theme", {
-    put("dark", true)
-    put("accent", blue)
-  })
-
-  // Create new nested section automatically
-  nest("meta", {
-    put("author", "Me")
-  })
-})
+// If state was: (theme: (color: "red"))
+// Result is: (theme: (color: "red", font: "serif"), meta: (version: 1))
+ensure-deep(defaults)
 ```

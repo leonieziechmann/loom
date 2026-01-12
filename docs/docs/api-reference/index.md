@@ -16,13 +16,15 @@ If you are looking for conceptual guides or tutorials, please check the [Concept
 
 Loom is organized into several modules to keep the namespace clean.
 
-| Module                                 | Description                                                         |
-| :------------------------------------- | :------------------------------------------------------------------ |
-| **[Engine](./api-reference/core)**     | The `weave` loop, `construct-loom`, and lifecycle hooks.            |
-| **[Motifs](./api-reference/motifs)**   | The component constructors: `motif`, `content-motif`, `data-motif`. |
-| **[Query](./api-reference)**           | Utilities for searching, filtering, and aggregating signals.        |
-| **[Mutator](./api-reference/mutator)** | Utilities for performing immutable updates on the Context.          |
-| **[Guards](./api-reference/guards)**   | Assertion functions to enforce document architecture.               |
+| Module                                 | Description                                                                |
+| :------------------------------------- | :------------------------------------------------------------------------- |
+| **[Engine](./api-reference/core)**     | The `weave` loop, `construct-loom`, and lifecycle hooks.                   |
+| **[Motifs](./api-reference/motifs)**   | The component constructors: `motif`, `content-motif`, `data-motif`.        |
+| **[Query](./api-reference/query)**     | Utilities for searching, filtering, and aggregating signals.               |
+| **[Mutator](./api-reference/mutator)** | Utilities for performing immutable updates on the Context.                 |
+| **[Guards](./api-reference/guards)**   | Assertion functions to enforce document architecture.                      |
+| **[Matcher](./api-reference/matcher)** | Schema validation and pattern matching utilities.                          |
+| **[Utilities](./api-reference/utils)** | Helpers for data manipulation (`collection`) and path inspection (`path`). |
 
 ## The `loom` Namespace
 
@@ -38,7 +40,8 @@ While you typically use `construct-loom` to create your own library instance, th
 #loom.query.select(..)
 #loom.mutator.batch(..)
 #loom.guards.assert-inside(..)
-
+#loom.matcher.match(..)
+#loom.collection.get(..)
 ```
 
 :::tip Pro Tip: Destructuring

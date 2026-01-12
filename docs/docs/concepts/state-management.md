@@ -42,9 +42,7 @@ It isn't just for Context; it's for **any data transformation**.
 The `mutator.batch(target, ops)` function takes a dictionary and applies a list of operations to it, returning a new dictionary.
 
 ```typ
-#import "@preview/loom:0.1.0": *
-#import loom: mutator
-
+#import "@preview/loom:0.1.0": mutator
 ```
 
 ### Use Case 1: Complex Scope Updates

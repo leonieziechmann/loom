@@ -1,6 +1,12 @@
+---
+sidebar_position: 1
+---
+
 # The Auto-Scaling Cookbook
 
 **Pattern: Aggregation & Context Scaling**
+
+[View Source Code](https://github.com/leonieziechmann/loom/tree/main/showcase/cook-book)
 
 This showcase demonstrates how Loom can turn a standard text document into a smart application. We will build a recipe template where **ingredients are defined inline** within the instructions, but automatically generate a **Shopping List** and **Nutrition Table** at the top of the page.
 
