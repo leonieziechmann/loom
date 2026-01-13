@@ -1,4 +1,4 @@
-#import "../../../lib.typ": matcher, mutator
+#import "@preview/loom:0.1.0": matcher, mutator
 #import "../rules.typ"
 #import "primitives.typ": *
 #import "../lw-content.typ": *

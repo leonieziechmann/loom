@@ -1,4 +1,4 @@
-#import "../../lib.typ" as loom
+#import "@preview/loom:0.1.0"
 #import "lw-layout.typ"
 #import "lw-content.typ"
 #import "components/primitives.typ": separator

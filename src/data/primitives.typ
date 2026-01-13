@@ -20,6 +20,51 @@
 #import "frame.typ"
 #import "path.typ"
 
+// ----------------------------------------------------------------------------
+// INTERNAL HELPERS (Fast checks)
+// ----------------------------------------------------------------------------
+
+#let _is-measure(data) = {
+  return data == none or (type(data) == array and data.len() == 2)
+}
+
+#let _is-draw(body) = {
+  return body == none or type(body) == content
+}
+
+// ----------------------------------------------------------------------------
+// CORE PRIMITIVE (Unsafe / Trusted)
+// ----------------------------------------------------------------------------
+
+/// Internal base primitive.
+/// Assumes all functions are already validated and conform to the Engine API.
+/// Does NOT perform any safety checks for performance reasons.
+#let _motif-core(
+  key,
+  scope,
+  measure,
+  draw,
+  body,
+) = {
+  // Minimal defaults handling to prevent engine crashes on null-pointers
+  let final-scope = if scope == none { c => c } else { scope }
+  let final-measure = if measure == none {
+    (ctx, children) => (none, none)
+  } else { measure }
+  let final-draw = if draw == none { (ctx, p, v, body) => body } else { draw }
+
+  [#metadata((
+      type: "component",
+      scope: final-scope,
+      measure: final-measure,
+      draw: final-draw,
+      body: body,
+    ))#key]
+}
+
+// ----------------------------------------------------------------------------
+// PUBLIC PRIMITIVES
+// ----------------------------------------------------------------------------
 
 /// The base primitive for creating a Loom component.
 ///
@@ -38,22 +83,57 @@
   /// Function `(ctx, children-data) => (public, view)`.
   /// Calculates data and prepares the view model.
   /// -> function
-  measure: (ctx, children-data) => (none, none),
+  measure: none,
   /// Function `(ctx, public, view, body) => content`.
   /// Renders the component.
   /// -> function
-  draw: (ctx, public, view, body) => body,
+  draw: none,
   /// The content body of the component.
   /// -> content
   body,
-) = [#metadata((
-    type: "component",
-    scope: if scope == none { c => c } else { scope },
-    measure: if measure == none { (..v) => (none, none) } else { measure },
-    draw: if draw == none { (..v, body) => body } else { draw },
-    body: body,
-  ))#key]
+) = {
+  assert(
+    type(key) == label,
+    message: "motif: `key` must be a label, got " + repr(type(key)),
+  )
 
+  // 1. Wrap Measure (Only if user provided one)
+  let safe-measure = if measure == none { none } else {
+    (ctx, children-data) => {
+      let res = measure(ctx, children-data)
+      if not _is-measure(res) {
+        let loc = path.to-string(ctx)
+        panic(
+          "motif: function `measure` must return `(any, any)` or `none`, but returned "
+            + repr(res)
+            + " at "
+            + loc,
+        )
+      }
+      res
+    }
+  }
+
+  // 2. Wrap Draw (Only if user provided one)
+  let safe-draw = if draw == none { none } else {
+    (ctx, public, view, body) => {
+      let res = draw(ctx, public, view, body)
+      if not _is-draw(res) {
+        let loc = path.to-string(ctx)
+        panic(
+          "motif: function `draw` must return `content` or `none`, but returned type "
+            + repr(type(res))
+            + " at "
+            + loc,
+        )
+      }
+      res
+    }
+  }
+
+  // 3. Call Core directly
+  _motif-core(key, scope, safe-measure, safe-draw, body)
+}
 
 /// A "Managed" motif that automatically handles path tracking.
 ///
@@ -73,42 +153,73 @@
   key: <motif>,
   /// Function `ctx => ctx`.
   /// -> function
-  scope: ctx => ctx,
+  scope: none,
   /// Function `(ctx, children-data) => (public, view)`.
   /// -> function
-  measure: (ctx, children-data) => (none, none),
+  measure: none,
   /// Function `(ctx, public, view, body) => content`.
   /// -> function
-  draw: (ctx, public, view, body) => body,
+  draw: none,
   /// -> content
   body,
-) = motif(
-  key: key,
-  scope: ctx => {
-    if scope == none { return ctx }
+) = {
+  assert(
+    type(name) == str,
+    message: "managed-motif: `name` must be a string, got " + repr(type(name)),
+  )
 
+  // Logic for Scope
+  let managed-scope = ctx => {
     let path-ctx = path.append(ctx, name)
-    return scope(path-ctx)
-  },
-  measure: (ctx, children-data) => {
+    if scope == none { return path-ctx } // Fast path if no user scope
+    scope(path-ctx)
+  }
+
+  // Logic for Measure
+  let managed-measure = (ctx, children-data) => {
     if measure == none { return (none, none) }
 
-    let (user-public, user-view) = measure(ctx, children-data)
+    // Execute user function
+    let res = measure(ctx, children-data)
+
+    // SAFETY CHECK HERE: We must validate because we are about to destructure it
+    if not _is-measure(res) and res != none {
+      let loc = path.to-string(ctx)
+      panic(
+        "motif `"
+          + name
+          + "` (managed): function `measure` must return data in format `(any, any)` or `none` but returned "
+          + repr(res)
+          + " at "
+          + loc,
+      )
+    }
+
+    let (user-public, user-view) = if res == none { (none, none) } else { res }
     let current-path = path.get(ctx)
 
     // Auto-management: Wrap public data in a standard Frame
     let motif-frame = frame.new(
       kind: name,
-      key: current-path.last(default: "unknown"),
+      key: current-path.last(default: ("unknown",)),
       path: current-path,
       signal: user-public,
     )
 
     return (motif-frame, user-view)
-  },
-  draw: draw,
-  body,
-)
+  }
+
+  // Call _motif-core DIRECTLY.
+  // We do NOT call `motif(...)` here. This saves one layer of wrapper functions
+  // and avoids double-checking the result of `managed-measure` (which we know is valid).
+  _motif-core(
+    key,
+    managed-scope,
+    managed-measure,
+    draw,
+    body,
+  )
+}
 
 /// A helper primitive for components that primarily calculate data.
 ///
@@ -129,14 +240,24 @@
   /// Function `(ctx, children-data) => public`.
   /// Note: Returns only the public payload.
   /// -> function
-  measure: (ctx, children-data) => none,
+  measure: none,
   /// -> content
   body,
 ) = {
+  if name != none {
+    assert(
+      type(name) == str,
+      message: "compute-motif: `name` must be a string or none, got "
+        + repr(type(name)),
+    )
+  }
+
   let args = (
     scope: if scope == none { ctx => ctx } else { scope },
     measure: (ctx, children-data) => {
       if measure == none { return (none, none) }
+      // We don't check the return type here strictly because 'public' data can be anything,
+      // but we guarantee the tuple structure for the parent motif.
       return (measure(ctx, children-data), none)
     },
   )
@@ -161,21 +282,30 @@
   name,
   /// Function `ctx => ctx`.
   /// -> function
-  scope: ctx => ctx,
+  scope: none,
   /// Function `ctx => public`.
   /// Note: Data motifs typically don't process children.
   /// -> function
-  measure: ctx => none,
-) = compute-motif(
-  key: key,
-  name: name,
-  scope: if scope == none { ctx => ctx } else { scope },
-  measure: (ctx, _) => {
-    if measure == none { return none }
-    measure(ctx)
-  },
-  none,
-)
+  measure: none,
+) = {
+  assert(
+    type(name) == str,
+    message: "data-motif: `name` must be a string, got " + repr(type(name)),
+  )
+
+  let fallback-scope = if scope == none { ctx => ctx } else { scope }
+
+  compute-motif(
+    key: key,
+    name: name,
+    scope: fallback-scope,
+    measure: (ctx, _) => {
+      if measure == none { return none }
+      measure(ctx)
+    },
+    none,
+  )
+}
 
 /// A specialized primitive for purely visual components.
 ///
@@ -192,20 +322,34 @@
   scope: ctx => ctx,
   /// Function `(ctx, body) => content`.
   /// -> function
-  draw: (ctx, body) => body,
+  draw: none,
   /// Optional positional body argument
   /// -> ..content
   ..body,
-) = motif(
-  key: key,
-  scope: scope,
-  measure: (_, children-data) => (
-    if children-data == () { none } else { children-data },
-    none,
-  ),
-  draw: (ctx, _, _, body) => {
-    if draw == none { return none }
-    return draw(ctx, body)
-  },
-  body.pos().first(default: none),
-)
+) = {
+  motif(
+    key: key,
+    scope: scope,
+    // Content motifs pass through children data as the public signal
+    measure: (_, children-data) => (
+      if children-data == () { none } else { children-data },
+      none,
+    ),
+    draw: (ctx, _, _, body) => {
+      if draw == none { return none }
+
+      let res = draw(ctx, body)
+      if not _is-draw(res) {
+        let loc = path.to-string(ctx)
+        panic(
+          "content-motif: function `draw` must return `content` or `none`, but returned type "
+            + repr(type(res))
+            + " at "
+            + loc,
+        )
+      }
+      res
+    },
+    body.pos().first(default: none),
+  )
+}

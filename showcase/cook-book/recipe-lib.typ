@@ -1,6 +1,6 @@
-#import "../../lib.typ"
+#import "@preview/loom:0.1.0" as lib
 #import lib: *
-#let scope = lib.context.scope
+#let scope = lib.core.scope
 
 // 1. Initialize Loom
 #let loom = construct-loom(<recipe-loom>)

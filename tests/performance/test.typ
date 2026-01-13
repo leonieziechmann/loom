@@ -169,7 +169,7 @@ Testing the recursion limits and context stack depth.
   )[Core])
 
   // Wir bauen den Zwiebel-Ring von Innen nach Außen auf.
-  // range(0, max-depth) erzeugt 0..149.
+  // range(0, max-depth) erzeugt 0..49.
   // Wir wollen, dass der äußerste Ring "depth-val-1" ist.
   #let abyss = range(0, max-depth).fold(core, (inner-content, i) => {
     let current-depth = max-depth - i

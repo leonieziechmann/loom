@@ -1,4 +1,4 @@
-#import "../../lib.typ": construct-loom
+#import "@preview/loom:0.1.0": construct-loom
 
 #let (weave, motif, prebuild-motif) = construct-loom(<character-sheet-content>)
 
