@@ -19,6 +19,21 @@
       name = toml.package.name;
       version = toml.package.version;
 
+      linkPackageHook = ''
+        export XDG_DATA_HOME="$PWD/.typst-data"
+        export XDG_CACHE_HOME="$PWD/.typst-cache"
+
+        PKG_DIR="$XDG_DATA_HOME/typst/packages/preview/${name}/${version}"
+
+        # Only print if we are in an interactive shell (optional, keeps CI logs clean)
+        if [ -t 1 ]; then
+          echo "✨ Setting up Loom build environment..."
+        fi
+
+        mkdir -p "$(dirname "$PKG_DIR")"
+        rm -rf "$PKG_DIR"
+        ln -s "$PWD" "$PKG_DIR"
+      '';
     in
     {
       checks.${system}.pre-commit-check = pre-commit-hooks.lib.${system}.run {
@@ -51,20 +66,14 @@
 
         shellHook = ''
           ${self.checks.${system}.pre-commit-check.shellHook}
-
-          export XDG_DATA_HOME="$PWD/.typst-data"
-          export XDG_CACHE_HOME="$PWD/.typst-cache"
-
-          PKG_DIR="$XDG_DATA_HOME/typst/packages/preview/${name}/${version}"
-
-          echo "✨ Environment isolated. Data & Cache are local."
-
-          mkdir -p "$(dirname "$PKG_DIR")"
-          rm -rf "$PKG_DIR"
-          ln -s "$PWD" "$PKG_DIR"
-
+          ${linkPackageHook}
           echo "✔  Package linked! You can now use: #import \"@preview/${name}:${version}\": *"
         '';
+      };
+
+      docs = pkgs.mkShell {
+        buildInputs = [ pkgs.nodejs pkgs.typst ];
+        shellHook = linkPackageHook;
       };
     };
 }

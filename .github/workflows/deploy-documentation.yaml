@@ -37,7 +37,7 @@ jobs:
 
       - name: Build website using Nix environment
         run: |
-          nix develop --command bash -c "cd docs && npm ci && npm run build"
+          nix develop .#docs --command bash -c "cd docs && npm ci && npm run build"
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
