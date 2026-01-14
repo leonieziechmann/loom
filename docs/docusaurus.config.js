@@ -52,6 +52,13 @@ const config = {
           routeBasePath: "/",
           sidebarPath: './sidebars.js',
           editUrl: 'https://github.com/leonieziechmann/loom/tree/main/docs',
+
+          versions: {
+            current: {
+              label: 'Canary 🚧',
+              path: 'canary',
+            },
+          },
         },
         blog: false,
         theme: {
@@ -72,7 +79,7 @@ const config = {
         docsRouteBasePath: "/docs",
       },
     ],
-    '@docusaurus/theme-mermaid'
+    '@docusaurus/theme-mermaid',
   ],
 
   themeConfig:
@@ -92,6 +99,10 @@ const config = {
           src: 'img/logo.png',
         },
         items: [
+          {
+            type: 'docsVersionDropdown',
+            position: 'right',
+          },
           {
             href: 'https://github.com/leonieziechmann/loom',
             label: 'GitHub',

@@ -69,6 +69,10 @@ First, look at how clean the user's code is. They just write a story.
 ]
 ```
 
+<div style={{ textAlign: 'center' }}>
+  <video controls width="80%" src={require('/video/loom-recipe.mp4').default} />
+</div>
+
 ## 2. The Ingredient (The Data Source)
 
 The ingredient component is the workhorse. It does two things:
