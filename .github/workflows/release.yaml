@@ -1,0 +1,38 @@
+name: Release Package Archive
+
+on:
+  release:
+    types: [created]
+
+permissions:
+  contents: write
+
+jobs:
+  archive-and-upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create Package Archive
+        run: |
+          # Define a folder name based on the tag, e.g., loom-v1.0.0
+          PACKAGE_DIR="loom-${{ github.ref_name }}"
+
+          # Create the directory
+          mkdir -p "$PACKAGE_DIR"
+
+          # Copy the specific files requested
+          cp typst.toml "$PACKAGE_DIR/"
+          cp README.md "$PACKAGE_DIR/"
+          cp LICENSE "$PACKAGE_DIR/"
+          cp lib.typ "$PACKAGE_DIR/"
+          cp -r src "$PACKAGE_DIR/"
+
+          # Create the tarball
+          tar -czvf "$PACKAGE_DIR.tar.gz" "$PACKAGE_DIR"
+
+      - name: Upload Asset to Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: loom-${{ github.ref_name }}.tar.gz
