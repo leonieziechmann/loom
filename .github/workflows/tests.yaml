@@ -2,8 +2,20 @@ name: Testing
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'flake.nix'
+      - 'flake.lock'
+      - 'lib.typ'
+      - 'src/**'
+      - 'tests/**'
   pull_request:
     branches: [ main ]
+    paths:
+      - 'flake.nix'
+      - 'flake.lock'
+      - 'lib.typ'
+      - 'src/**'
+      - 'tests/**'
 
 jobs:
   tests:
@@ -16,6 +28,9 @@ jobs:
         uses: cachix/install-nix-action@v27
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Magic Nix Cache
+        uses: DeterminateSystems/magic-nix-cache-action@main
 
       - name: Run test suite
         run: nix develop --command tt run
