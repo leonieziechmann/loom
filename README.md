@@ -25,7 +25,7 @@ Loom brings "Time Travel" to Typst, but this comes at a cost. To keep your docum
 > **Loom is for Structure, not Content.**
 
 - **🟢 Traversal is Cheap:** Loom can traverse **30,000+ standard nodes** (paragraphs, shapes, text) in ~1.7s. You can write long theses without penalty.
-- **🔴 Logic is Expensive:** "Active" Loom components (Context mutations, Signals) are heavy. In stress tests, 2,000 active components slowed compilation to ~8s.
+- **🟡 Logic is Moderate:** "Active" Loom components (Context mutations, Signals) have overhead. In stress tests, 2,000 active components slowed compilation to **~1.2s** (previously ~8s).
 
 **Verdict:** Use Loom to manage your document's skeleton (Sections, Headers, Totals), but do not use it for the flesh (individual table cells, list bullets, or thousands of data points).
 
@@ -41,22 +41,35 @@ Import Loom from the package preview:
 
 To prevent namespace collisions and keep your code clean, we recommend the **Wrapper Pattern**.
 
-### 1. Create a Library File (`lib.typ`)
+### 1. Create a Library File (`loom-wrapper.typ`)
 
 Initialize Loom once with a unique project key and export the specific tools you need.
 
 ```typ
-// lib.typ
-#import "@preview/loom:0.1.0": construct-loom
+// loom-wrapper.typ
+#import "@preview/loom:0.1.0"
+#import loom: query, guards, mutator, matcher, collection
 
-// 1. Initialize with a unique ID
-#let loom = construct-loom(<my-project>)
+// 1. Construct a unique instance for your project.
+// The key (<my-project>) isolates your components from other libraries.
+#let (weave, motif, prebuild-motif) = loom.construct-loom(<my-project>)
 
-// 2. Export the tools
-#let weave = loom.weave
-#let motif = loom.motif.plain
-#let managed-motif = loom.motif.managed
-#let data-motif = loom.motif.data
+// 2. Export the specific tools you want to use.
+// This keeps your API clean for the rest of your document.
+
+// The Engine
+#let weave = weave
+
+// The Component Constructors
+#let managed-motif = motif.managed
+#let compute-motif = motif.compute
+#let content-motif = motif.content
+#let data-motif = motif.data
+#let motif = motif.plain
+
+// Prebuild Motifs
+#let apply = prebuild-motif.apply
+#let debug = prebuild-motif.debug
 ```
 
 ### 2. Build your Document (`main.typ`)

@@ -32,7 +32,7 @@ Create a file named `loom-wrapper.typ` (or `lw.typ`) in your project root.
 
 // 1. Construct a unique instance for your project.
 // The key (<my-project>) isolates your components from other libraries.
-#let (weave, motif, prebuild-motif) = construct-loom(<my-project>)
+#let (weave, motif, prebuild-motif) = loom.construct-loom(<my-project>)
 
 // 2. Export the specific tools you want to use.
 // This keeps your API clean for the rest of your document.

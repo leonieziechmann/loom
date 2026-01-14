@@ -18,12 +18,12 @@ To give you a realistic idea of Loom's overhead, here are compilation times from
 Loom is **efficient at doing nothing** (skipping standard content) but **expensive when engaged** (processing logic).
 :::
 
-| Scenario               | Complexity                                    | Time       | Verdict           |
-| :--------------------- | :-------------------------------------------- | :--------- | :---------------- |
-| **Baseline Traversal** | 3,000 standard nodes, no motifs.              | **~200ms** | 🚀 **Fast**       |
-| **External Wrappers**  | Shallow nesting, wrapping `cetz` or `codly`.  | **~2.3ms** | ⚡ **Negligible** |
-| **Recipe Showcase**    | Real-world document, ~20 data nodes.          | **~16ms**  | 🚀 **Fast**       |
-| **The Legion**         | 2,000+ active motifs, 500+ context mutations. | **~7.8s**  | 🔴 **Heavy**      |
+| Scenario               | Complexity                                    | Loom Overhead | Verdict           |
+| :--------------------- | :-------------------------------------------- | :------------ | :---------------- |
+| **Baseline Traversal** | 3,000 standard nodes, no motifs.              | **~200ms**    | 🚀 **Fast**       |
+| **External Wrappers**  | Shallow nesting, wrapping `cetz` or `codly`.  | **~2.3ms**    | ⚡ **Negligible** |
+| **Recipe Showcase**    | Real-world document, ~20 data nodes.          | **~16ms**     | 🚀 **Fast**       |
+| **The Legion**         | 2,000+ active motifs, 500+ context mutations. | **~1.2s**     | 🟡 **Moderate**   |
 
 ## ⚠️ Performance Reality: Traversal vs. Execution
 
@@ -39,7 +39,7 @@ You do not need to worry about the length of your text chapters. Loom efficientl
 
 ### 2. Reactivity is Expensive (The "Logic" Tax)
 
-However, once you introduce a `motif`, the engine must allocate a Frame, track its path, and manage its signals. While you can have 10,000 standard nodes, you **cannot** have 10,000 Motifs. In stress tests, 2,000 active Motifs with context mutations slowed compilation to **~8 seconds**.
+However, once you introduce a `motif`, the engine must allocate a Frame, track its path, and manage its signals. While you can have 10,000 standard nodes, you **cannot** have 10,000 Motifs. In stress tests, 2,000 active Motifs with context mutations slowed compilation to **~1.2 seconds**.
 
 ## The "Budget" Rule
 
