@@ -1,0 +1,114 @@
+name: Publish to Typst Universe
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish_pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Loom (Your Package)
+        uses: actions/checkout@v4
+        with:
+          path: loom
+
+      - name: Get Version and Name
+        id: metadata
+        working-directory: loom
+        run: |
+          VERSION=$(grep '^version =' typst.toml | cut -d '"' -f 2)
+          NAME=$(grep '^name =' typst.toml | cut -d '"' -f 2)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "name=$NAME" >> $GITHUB_OUTPUT
+
+      - name: Checkout Your Packages Fork
+        uses: actions/checkout@v4
+        with:
+          repository: leonieziechmann/packages
+          path: packages-fork
+          token: ${{ secrets.PACKAGES_PAT }}
+
+      - name: Prepare Package Files
+        id: prep
+        run: |
+          PACKAGE_NAME=${{ steps.metadata.outputs.name }}
+          VERSION=${{ steps.metadata.outputs.version }}
+          TARGET_BASE="packages-fork/packages/preview/$PACKAGE_NAME"
+          TARGET_DIR="$TARGET_BASE/$VERSION"
+
+          # 1. Determine if this is a NEW package or an UPDATE
+          if [ -d "$TARGET_BASE" ]; then
+             echo "is_update=true" >> $GITHUB_OUTPUT
+             echo "Detected existing package. This is an update."
+          else
+             echo "is_update=false" >> $GITHUB_OUTPUT
+             echo "Package folder not found. This is a new package."
+          fi
+
+          # 2. Create directory
+          mkdir -p "$TARGET_DIR"
+
+          # 3. Copy specific files
+          cp loom/typst.toml "$TARGET_DIR/"
+          cp loom/lib.typ "$TARGET_DIR/"
+          cp loom/LICENSE "$TARGET_DIR/"
+          cp loom/README.md "$TARGET_DIR/"
+          cp -r loom/src "$TARGET_DIR/"
+
+      - name: Push and Create PR
+        working-directory: packages-fork
+        env:
+          GH_TOKEN: ${{ secrets.PACKAGES_PAT }}
+          VERSION: ${{ steps.metadata.outputs.version }}
+          PACKAGE_NAME: ${{ steps.metadata.outputs.name }}
+          IS_UPDATE: ${{ steps.prep.outputs.is_update }}
+          RELEASE_BODY: ${{ github.event.release.body }}
+        run: |
+          # Configure Git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Create Branch
+          BRANCH_NAME="add-$PACKAGE_NAME-$VERSION"
+          git checkout -b "$BRANCH_NAME"
+          git add .
+          git commit -m "Add $PACKAGE_NAME $VERSION"
+          git push origin "$BRANCH_NAME"
+
+          # Generate PR Body
+          if [ "$IS_UPDATE" = "true" ]; then
+            TYPE_CHECKBOXES="- [ ] a new package
+          - [x] an update for a package"
+          else
+            TYPE_CHECKBOXES="- [x] a new package
+          - [ ] an update for a package"
+          fi
+
+          # Write Body to file
+          cat <<EOF > pr_body.txt
+          I am submitting
+
+          $TYPE_CHECKBOXES
+
+          Description:
+          $RELEASE_BODY
+
+          I have read and followed the submission guidelines and, in particular, I
+
+          - [x] selected [a name](https://github.com/typst/packages/blob/main/docs/manifest.md) that isn't the most obvious or canonical name for what the package does
+          - [x] added a [\`typst.toml\`](https://github.com/typst/packages/blob/main/docs/manifest.md) file with all required keys
+          - [x] added a [\`README.md\`](https://github.com/typst/packages/blob/main/docs/documentation.md) with documentation for my package
+          - [x] have chosen [a license](https://github.com/typst/packages/blob/main/docs/licensing.md) and added a \`LICENSE\` file or linked one in my \`README.md\`
+          - [x] tested my package locally on my system and it worked
+          - [x] [\`exclude\`d](https://github.com/typst/packages/blob/main/docs/tips.md) PDFs or README images, if any, but not the LICENSE
+          - [x] ensured that my package is licensed such that users can use and distribute the contents of its template directory without restriction, after modifying them through normal use.
+          EOF
+
+          # Create PR
+          gh pr create \
+            --repo typst/packages \
+            --title "$PACKAGE_NAME:$VERSION" \
+            --body-file pr_body.txt \
+            --head "leonieziechmann:$BRANCH_NAME" \
+            --base "main"
