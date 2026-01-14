@@ -76,7 +76,7 @@ Initialize Loom once with a unique project key and export the specific tools you
 
 ```typ
 // main.typ
-#import "lib.typ": *
+#import "loom-wrapper.typ": *
 
 // A component that reports data to its parent (No visual output)
 #let ingredient(price) = data-motif(
