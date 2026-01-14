@@ -73,7 +73,7 @@ jobs:
           BRANCH_NAME="add-$PACKAGE_NAME-$VERSION"
           git checkout -b "$BRANCH_NAME"
           git add .
-          git commit -m "Add $PACKAGE_NAME $VERSION"
+          git commit -m "$PACKAGE_NAME:$VERSION"
           git push origin "$BRANCH_NAME"
 
           # Generate PR Body
@@ -105,10 +105,13 @@ jobs:
           - [x] ensured that my package is licensed such that users can use and distribute the contents of its template directory without restriction, after modifying them through normal use.
           EOF
 
+          echo "Title: $PACKAGE_NAME:$VERSION"
+          cat pr_body.txt
+
           # Create PR
-          gh pr create \
-            --repo typst/packages \
-            --title "$PACKAGE_NAME:$VERSION" \
-            --body-file pr_body.txt \
-            --head "leonieziechmann:$BRANCH_NAME" \
-            --base "main"
+          # gh pr create \
+          #   --repo typst/packages \
+          #   --title "$PACKAGE_NAME:$VERSION" \
+          #   --body-file pr_body.txt \
+          #   --head "leonieziechmann:$BRANCH_NAME" \
+          #   --base "main"
