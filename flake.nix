@@ -11,9 +11,10 @@
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
     flake-utils.url = "github:numtide/flake-utils";
     tytanic.url = "github:typst-community/tytanic/v0.3.3";
+    typst-utils.url = "github:leonieziechmann/typst-nix-utils";
   };
 
-  outputs = { self, nixpkgs, pre-commit-hooks, flake-utils, tytanic }:
+  outputs = { self, nixpkgs, pre-commit-hooks, flake-utils, tytanic, typst-utils }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
@@ -22,43 +23,37 @@
         name = toml.package.name;
         version = toml.package.version;
 
-        linkPackageHook = ''
-          export XDG_DATA_HOME="$PWD/.typst-data"
-          export XDG_CACHE_HOME="$PWD/.typst-cache"
+        loomPackage = typst-utils.lib.buildTypstPackage {
+          inherit pkgs;
+          pname = toml.package.name;
+          version = toml.package.version;
+          src = ./.;
+          files = [ "typst.toml" "lib.typ" "src" "LICENSE" ];
+        };
 
-          PKG_DIR="$XDG_DATA_HOME/typst/packages/preview/${name}/${version}"
-
-          # Only print if we are in an interactive shell (optional, keeps CI logs clean)
-          if [ -t 1 ]; then
-            echo "✨ Setting up Loom build environment..."
-          fi
-
-          mkdir -p "$(dirname "$PKG_DIR")"
-          rm -rf "$PKG_DIR"
-          ln -s "$PWD" "$PKG_DIR"
-        '';
+        typstEnv = typst-utils.lib.mkTypstEnv {
+          inherit pkgs;
+          typst = pkgs.typst;
+          packages = [
+            loomPackage
+          ];
+        };
       in
       {
+        packages.default = loomPackage;
+
         checks.pre-commit-check = pre-commit-hooks.lib.${system}.run {
           src = ./.;
           hooks = {
-            typstyle = {
-              enable = true;
-              name = "typstyle";
-              entry = "${pkgs.typstyle}/bin/typstyle -i";
-              files = "\\.typ$";
-            };
-            prettier = {
-              enable = true;
-              types_or = [ "markdown" ];
-            };
+            typstyle = { enable = true; name = "typstyle"; entry = "${pkgs.typstyle}/bin/typstyle -i"; files = "\\.typ$"; };
+            prettier = { enable = true; types_or = [ "markdown" ]; };
             nixpkgs-fmt.enable = true;
           };
         };
 
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
-            typst
+            typstEnv
             typstyle
             markdownlint-cli
             nodePackages.prettier
@@ -69,14 +64,12 @@
 
           shellHook = ''
             ${self.checks.${system}.pre-commit-check.shellHook}
-            ${linkPackageHook}
             echo "✔  Package linked! You can now use: #import \"@preview/${name}:${version}\": *"
           '';
         };
 
         docs = pkgs.mkShell {
-          buildInputs = [ pkgs.nodejs pkgs.typst ];
-          shellHook = linkPackageHook;
+          buildInputs = with pkgs; [ nodejs typst ];
         };
       }
     );
