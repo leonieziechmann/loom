@@ -32,7 +32,6 @@
     ]
   }
 
-
   // --- REPORT HEADER ---
   align(center)[
     #text(size: 2em, weight: "bold")[#title] \
