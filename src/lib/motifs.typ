@@ -18,6 +18,7 @@
 #import "../data/primitives.typ": motif
 #import "assert.typ": assert-types
 
+
 /// A utility motif that visualizes the data flow for debugging purposes.
 ///
 /// If enabled, it prints the internal `children-data` structure directly into the document

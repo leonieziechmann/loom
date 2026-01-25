@@ -14,6 +14,7 @@
  * ----------------------------------------------------------------------------
  */
 
+
 /// Safely retrieves a value from a nested structure of dictionaries and arrays.
 ///
 /// Walks through the `root` using the provided `path`. If any key or index

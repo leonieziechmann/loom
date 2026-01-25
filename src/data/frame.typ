@@ -16,6 +16,7 @@
 
 #import "../lib/assert.typ": assert-types
 
+
 /// Creates a new frame instance.
 ///
 /// Frames are the standardized envelopes for passing data between motifs.

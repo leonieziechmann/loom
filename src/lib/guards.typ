@@ -19,7 +19,6 @@
 #import "../data/path.typ"
 #import "../core/context.typ": get-system-field
 
-// --- PRIVATE HELPERS ---
 
 #let _fail(ctx, msg) = {
   // In test mode, we return false instead of panicking to verify failure paths.

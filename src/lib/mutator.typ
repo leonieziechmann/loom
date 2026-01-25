@@ -6,8 +6,7 @@
  * Created: 2026-01-04
  * License: MIT
  * ----------------------------------------------------------------------------
- * Copyright (c) 2026 Leonie Juna Ziechmann.
- * All rights reserved.
+ * Copyright (c) 2026 Leonie Juna Ziechmann. All rights reserved.
  * ----------------------------------------------------------------------------
  * Description:
  * Provides a functional, immutable API for modifying Typst dictionaries.
@@ -17,6 +16,7 @@
  */
 
 #import "collection.typ"
+
 
 /// Applies a sequence of operations to a target dictionary.
 ///
@@ -284,12 +284,11 @@
 ) = _auto-nest(
   path.pos(),
   (
-    (state, reader) => {
+    (state, read) => {
       let new-patch = state.patch
 
-      // Iterate over the keys we want to merge in
       for (key, val) in other {
-        let curr = reader(key)
+        let curr = read(key)
         let merged = collection.merge-deep(curr, val)
         new-patch.insert(key, merged)
       }
@@ -332,28 +331,19 @@
     (state, reader) => {
       let new-patch = state.patch
 
-      // Internal helper: recursively merges defaults into a target.
-      // We define this locally to ensure "keep-existing" semantics
-      // regardless of how collection.merge-deep is implemented.
-      let _apply-defaults(target, defs) = {
-        // 1. If target is missing, the default wins entirely.
-        if target == none { return defs }
+      let _apply-defaults(target, defaults) = {
+        if target == none { return defaults }
+        if type(target) != dictionary { return target }
+        if type(defaults) != dictionary { return target }
 
-        // 2. If mismatch types or not dictionaries, the existing target wins.
-        if type(target) != dictionary or type(defs) != dictionary {
-          return target
-        }
-
-        // 3. Both are dictionaries: recurse into keys.
         let result = target
-        for (k, v) in defs {
+        for (k, v) in defaults {
           let t-val = result.at(k, default: none)
           result.insert(k, _apply-defaults(t-val, v))
         }
         return result
       }
 
-      // Iterate over the keys in the defaults object
       for (key, default-val) in defaults {
         let curr = reader(key)
         let ensured = _apply-defaults(curr, default-val)

@@ -19,6 +19,7 @@
 #import "context.typ": empty-context, get-system-field, set-system-fields
 #import "../lib/assert.typ": assert-types
 
+
 /// The main entry point for Loom.
 ///
 /// Initiates the fixed-point engine execution. It repeatedly measures the content
@@ -68,7 +69,7 @@
 
   let measure-limit = if max-passes > 1 { max-passes - 1 } else { 0 }
 
-  // --- PHASE 1: MEASURE LOOP (bis Fixpunkt) ---
+  // --- 1. Measure Loop ---
   for i in range(measure-limit) {
     let measure-ctx = set-system-fields(base-ctx, pass: "measure")
     let transition-data = injector(measure-ctx, current-payload)
@@ -81,7 +82,7 @@
       draw: false,
     )
 
-    // CHECK FOR CONVERGENCE (FIXED POINT)
+    // check for convergence
     if i > 0 and new-payload == current-payload {
       fix-point-reached = true
       if debug { rect(fill: red)[Converged early at pass #i] }
@@ -96,7 +97,7 @@
     current-payload = new-payload
   }
 
-  // --- PHASE 2: FINAL DRAW ---
+  // --- 2. Final Draw ---
   let draw-ctx = set-system-fields(base-ctx, pass: "draw")
   let final-transition = injector(draw-ctx, current-payload)
   draw-ctx = draw-ctx + final-transition

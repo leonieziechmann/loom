@@ -6,8 +6,7 @@
  * Created: 2026-01-04
  * License: MIT
  * ----------------------------------------------------------------------------
- * Copyright (c) 2026 Leonie Juna Ziechmann.
- * All rights reserved.
+ * Copyright (c) 2026 Leonie Juna Ziechmann. All rights reserved.
  * ----------------------------------------------------------------------------
  * Description:
  * Provides traversal and aggregation utilities for the component data tree.
@@ -19,8 +18,6 @@
 #import "collection.typ"
 #import "../data/frame.typ": is-frame
 
-
-// --- 1. SEARCH & TRAVERSAL ---
 
 /// Filters a list of children frames by kind.
 ///
@@ -144,36 +141,25 @@
 
   let result = ()
 
-  for node in children {
-    if node == none { continue }
+  for node in children.filter(is-frame) {
+    if kind in (none, node.kind) { result.push(node) }
 
-    // 1. Add self if matching (or if no filter)
-    let matches = if kind == none { true } else {
-      node.at("kind", default: none) == kind
-    }
-
-    if matches {
-      result.push(node)
-    }
-
-    // 2. Extract Children from Signal
-    let signal = node.at("signal", default: none)
+    let signal = node.signal
     let next-nodes = ()
 
-    if is-frame(signal) {
-      next-nodes.push(signal)
-    } else if type(signal) == array {
-      next-nodes += signal.filter(item => is-frame(item))
-    } else if type(signal) == dictionary and "children" in signal {
-      let kids = signal.children
-      if type(kids) == array {
-        next-nodes += kids.filter(item => is-frame(item))
-      } else if is-frame(kids) {
-        next-nodes.push(kids)
+    if is-frame(signal) { next-nodes.push(signal) } else if (
+      type(signal) == array
+    ) { next-nodes += signal.filter(is-frame) } else if (
+      type(signal) == dictionary
+    ) {
+      if "children" in signal {
+        let children = signal.children
+
+        if is-frame(children) { next-nodes.push(children) }
+        if type(children) == array { next-nodes += children.filter(is-frame) }
       }
     }
 
-    // 3. Recurse into extracted children
     if next-nodes.len() > 0 {
       result += collect(next-nodes, kind: kind, depth: depth - 1)
     }
@@ -197,9 +183,6 @@
     .map(c => c.at("signal", default: none))
     .filter(s => s != none)
 }
-
-
-// --- 2. DATA EXTRACTION & AGGREGATION ---
 
 /// Extracts a specific field from the signals of all children.
 ///

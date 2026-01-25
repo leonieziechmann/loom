@@ -18,6 +18,7 @@
 #import "../core/context.typ": get-system-field, set-system-fields
 #import "../lib/assert.typ": assert-types
 
+
 /// Retrieves the current path array from the context.
 ///
 /// -> array<(str, int)>

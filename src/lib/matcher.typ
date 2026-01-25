@@ -15,7 +15,7 @@
  * ----------------------------------------------------------------------------
  */
 
-// Unique signature to identify matcher objects to avoid collisions with user data.
+
 #let _SIG_KEY = "__loom_matcher_sig__"
 #let _SIG_VAL = "loom-matcher-v1-7600d448"
 

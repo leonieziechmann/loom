@@ -19,6 +19,7 @@
 #import "../data/primitives.typ"
 #import "motifs.typ"
 
+
 /// Constructs a new Loom instance bound to a specific namespace key.
 ///
 /// This function acts as the bridge between the user's project and the Loom engine.
