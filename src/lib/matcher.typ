@@ -19,9 +19,6 @@
 #let _SIG_KEY = "__loom_matcher_sig__"
 #let _SIG_VAL = "loom-matcher-v1-7600d448"
 
-
-// --- 1. DESCRIPTORS (Helpers) ---
-
 /// Matches ANYTHING (Wildcard).
 /// Use this instead of `auto` if you want to explicitly allow any value.
 ///
@@ -139,8 +136,6 @@
   target: target,
 )
 
-// --- 2. ENGINE ---
-
 /// Checks if a value matches a schema pattern.
 ///
 /// # Patterns
@@ -168,12 +163,10 @@
   strict: false,
 ) = {
   // A. Check Descriptors (By Description)
-  // We explicitly check for our unique signature before treating it as logic
   if (
     type(expected) == dictionary
       and expected.at(_SIG_KEY, default: none) == _SIG_VAL
   ) {
-    // Wildcard
     if expected.type == "matcher-any" {
       return true
     }
@@ -236,9 +229,6 @@
   return value == expected
 }
 
-
-// --- 3. SWITCH (Classifier) ---
-
 /// Defines a single case within a switch block.
 ///
 /// -> dictionary
@@ -246,13 +236,14 @@
   /// The pattern to match against.
   /// -> any
   pattern,
-  /// The value to return if the pattern matches.
-  /// -> any
-  output,
+  /// Transformation function for mapping the value to a result.
+  /// (value) => result.
+  /// -> function
+  transform,
   /// Whether to enforce strict matching for this specific case.
   /// -> bool
   strict: false,
-) = ((pattern: pattern, output: output, strict: strict),)
+) = ((pattern: pattern, transform: transform, strict: strict),)
 
 /// Evaluates a value against a list of cases and returns the output of the first match.
 ///
@@ -276,7 +267,9 @@
 ) = {
   if type(cases) != array { panic("Switch expects an array of cases.") }
   for c in cases {
-    if match(target, c.pattern, strict: c.strict) { return c.output }
+    if match(target, c.pattern, strict: c.strict) {
+      return (c.transform)(target)
+    }
   }
   return none
 }

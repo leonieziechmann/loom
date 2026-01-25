@@ -195,11 +195,11 @@ matcher.dict(schema)
 
 ## Classification (Switch)
 
-The `switch` function allows you to categorize data against a list of cases, returning a value associated with the first match.
+The `switch` function allows you to categorize data against a list of cases and **safely transform** the result.
 
 ### `switch`
 
-Evaluates a value against a list of cases.
+Evaluates a value against a list of cases. It iterates through the cases and executes the transformation function of the first match.
 
 ```typ
 matcher.switch(target, cases)
@@ -214,29 +214,54 @@ matcher.switch(target, cases)
 
 Defines a single branch in a switch statement.
 
+:::warning Lazy Evaluation
+Unlike a standard switch statement where you provide a static output value, `case` requires a **Transformation Function**.
+
+This ensures **Lazy Evaluation**. Typst evaluates function arguments eagerly; passing a transformation function ensures code is only executed _after_ the pattern matches, preventing runtime errors on mismatched data types.
+:::
+
 ```typ
-matcher.case(pattern, output, strict: false)
+matcher.case(pattern, transform, strict: false)
 ```
 
-| Parameter | Type   | Default  | Description                                  |
-| --------- | ------ | -------- | -------------------------------------------- |
-| `pattern` | `any`  | Required | The schema pattern to match.                 |
-| `output`  | `any`  | Required | The value to return if this case matches.    |
-| `strict`  | `bool` | `false`  | Override strict mode for this specific case. |
+| Parameter   | Type       | Default  | Description                                                          |
+| ----------- | ---------- | -------- | -------------------------------------------------------------------- |
+| `pattern`   | `any`      | Required | The schema pattern to match.                                         |
+| `transform` | `function` | Required | A callback `(value) => result` executed only if the pattern matches. |
+| `strict`    | `bool`     | `false`  | Override strict mode for this specific case.                         |
 
-**Example:**
+### Usage Examples
+
+**1. Safe Type-Dependent Logic**
+Because the transformation is a callback, you can safely perform operations that would crash on other types.
+
+```typ
+#let result = matcher.switch(my-data, {
+  // SAFE: This multiplication only runs if my-data is an integer
+  matcher.case(matcher.instance(int), x => x * 2)
+
+  // SAFE: "my-data" is not accessed as a string unless it matches string
+  matcher.case(matcher.instance(str), x => "Value is: " + x)
+
+  // Fallback
+  matcher.case(matcher.any(), _ => "Unknown type")
+})
+```
+
+**2. Static Values**
+If you want to return a static value, ignore the argument in the callback using the underscore `_` syntax.
 
 ```typ
 #let kind = matcher.switch(signal, {
   import matcher: *
 
-  // 1. Match a specific shape
-  case((cost: int), "task")
+  // Match a specific shape -> Return static string
+  case((cost: int), _ => "task")
 
-  // 2. Match a list of items
-  case(many(str), "tag-list")
+  // Match a list -> Return static string
+  case(many(str), _ => "tag-list")
 
-  // 3. Fallback using wildcard
-  case(any(), "unknown")
+  // Fallback
+  case(any(), _ => "unknown")
 })
 ```
