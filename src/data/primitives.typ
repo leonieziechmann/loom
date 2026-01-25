@@ -21,7 +21,7 @@
 #import "path.typ"
 
 // ----------------------------------------------------------------------------
-// INTERNAL HELPERS (Fast checks)
+// INTERNAL HELPERS
 // ----------------------------------------------------------------------------
 
 #let _is-measure(data) = {
@@ -32,13 +32,6 @@
   return body == none or type(body) == content
 }
 
-// ----------------------------------------------------------------------------
-// CORE PRIMITIVE (Unsafe / Trusted)
-// ----------------------------------------------------------------------------
-
-/// Internal base primitive.
-/// Assumes all functions are already validated and conform to the Engine API.
-/// Does NOT perform any safety checks for performance reasons.
 #let _motif-core(
   key,
   scope,
@@ -46,7 +39,6 @@
   draw,
   body,
 ) = {
-  // Minimal defaults handling to prevent engine crashes on null-pointers
   let final-scope = if scope == none { c => c } else { scope }
   let final-measure = if measure == none {
     (ctx, children) => (none, none)
@@ -97,7 +89,6 @@
     message: "motif: `key` must be a label, got " + repr(type(key)),
   )
 
-  // 1. Wrap Measure (Only if user provided one)
   let safe-measure = if measure == none { none } else {
     (ctx, children-data) => {
       let res = measure(ctx, children-data)
@@ -114,7 +105,6 @@
     }
   }
 
-  // 2. Wrap Draw (Only if user provided one)
   let safe-draw = if draw == none { none } else {
     (ctx, public, view, body) => {
       let res = draw(ctx, public, view, body)
@@ -131,7 +121,6 @@
     }
   }
 
-  // 3. Call Core directly
   _motif-core(key, scope, safe-measure, safe-draw, body)
 }
 
@@ -168,21 +157,16 @@
     message: "managed-motif: `name` must be a string, got " + repr(type(name)),
   )
 
-  // Logic for Scope
   let managed-scope = ctx => {
     let path-ctx = path.append(ctx, name)
-    if scope == none { return path-ctx } // Fast path if no user scope
+    if scope == none { return path-ctx }
     scope(path-ctx)
   }
 
-  // Logic for Measure
   let managed-measure = (ctx, children-data) => {
     if measure == none { return (none, none) }
-
-    // Execute user function
     let res = measure(ctx, children-data)
 
-    // SAFETY CHECK HERE: We must validate because we are about to destructure it
     if not _is-measure(res) and res != none {
       let loc = path.to-string(ctx)
       panic(
@@ -198,7 +182,6 @@
     let (user-public, user-view) = if res == none { (none, none) } else { res }
     let current-path = path.get(ctx)
 
-    // Auto-management: Wrap public data in a standard Frame
     let motif-frame = frame.new(
       kind: name,
       key: current-path.last(default: ("unknown",)),
@@ -209,9 +192,6 @@
     return (motif-frame, user-view)
   }
 
-  // Call _motif-core DIRECTLY.
-  // We do NOT call `motif(...)` here. This saves one layer of wrapper functions
-  // and avoids double-checking the result of `managed-measure` (which we know is valid).
   _motif-core(
     key,
     managed-scope,
@@ -254,12 +234,10 @@
 
   let args = (
     scope: if scope == none { ctx => ctx } else { scope },
-    measure: (ctx, children-data) => {
-      if measure == none { return (none, none) }
-      // We don't check the return type here strictly because 'public' data can be anything,
-      // but we guarantee the tuple structure for the parent motif.
-      return (measure(ctx, children-data), none)
-    },
+    measure: (ctx, children-data) => (
+      if measure == none { children-data } else { measure(ctx, children-data) },
+      none,
+    ),
   )
 
   if name == none { motif(key: key, ..args, body) } else {
@@ -330,7 +308,6 @@
   motif(
     key: key,
     scope: scope,
-    // Content motifs pass through children data as the public signal
     measure: (_, children-data) => (
       if children-data == () { none } else { children-data },
       none,
