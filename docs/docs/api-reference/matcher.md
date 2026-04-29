@@ -265,3 +265,27 @@ If you want to return a static value, ignore the argument in the callback using 
   case(any(), _ => "unknown")
 })
 ```
+
+---
+
+## Utilities
+
+### `display`
+
+Converts a matcher schema into a human-readable string representation. This is primarily used for debugging, logging, or generating error messages showing the expected structure.
+
+```typ
+matcher.display(pattern)
+```
+
+| Parameter | Type  | Default  | Description                   |
+| --------- | ----- | -------- | ----------------------------- |
+| `pattern` | `any` | Required | The schema pattern to format. |
+
+**Example:**
+
+```typ
+matcher.display(matcher.many(int))        // -> "array<int>"
+matcher.display(matcher.choice("a", "b")) // -> "\"a\" | \"b\""
+matcher.display((a: matcher.many(int)))   // -> "(a: array<int>)"
+```
