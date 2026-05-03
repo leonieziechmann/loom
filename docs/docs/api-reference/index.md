@@ -44,7 +44,7 @@ While you typically use `construct-loom` to create your own library instance, th
 #loom.collection.get(..)
 ```
 
-:::tip Pro Tip: Destructuring
+:::tip
 You can destructure the engine components directly during construction to keep your code clean:
 `#let (weave, motif) = loom.construct-loom(<id>)`
 :::

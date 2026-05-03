@@ -39,7 +39,7 @@ A `dictionary` containing the tools pre-bound to your namespace:
 #### Example
 
 ```typ
-#import "@preview/loom:0.1.0"
+#import "@preview/loom:0.1.1"
 
 // 1. Construct the instance
 #let my-loom = loom.construct-loom(<my-project>)

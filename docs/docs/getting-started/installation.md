@@ -15,7 +15,7 @@ Instead, we use the **Wrapper Pattern** to create a dedicated instance for your 
 Loom is available on Typst Universe. You can import it using the standard package syntax.
 
 ```typ
-#import "@preview/loom:0.1.0": construct-loom
+#import "@preview/loom:0.1.1": construct-loom
 ```
 
 _(Note: Check the [Typst Universe](https://typst.app/universe/package/loom) for the latest version number.)_
@@ -27,7 +27,7 @@ To keep your code clean and prevent namespace collisions, you should initialize 
 Create a file named `loom-wrapper.typ` (or `lw.typ`) in your project root.
 
 ```typ title="loom-wrapper.typ"
-#import "@preview/loom:0.1.0"
+#import "@preview/loom:0.1.1"
 #import loom: query, guards, mutator, matcher, collection
 
 // 1. Construct a unique instance for your project.
@@ -50,6 +50,7 @@ Create a file named `loom-wrapper.typ` (or `lw.typ`) in your project root.
 // Prebuild Motifs
 #let apply = prebuild-motif.apply
 #let debug = prebuild-motif.debug
+#let static = prebuild-motif.static
 ```
 
 **Why do this?**
@@ -83,7 +84,7 @@ Now, in your main document (`main.typ`), you simply import your wrapper.
 If you want to copy-paste a complete setup, here is the minimal boilerplate:
 
 ```typ title="loom-wrapper.typ"
-#import "@preview/loom:0.1.0"
+#import "@preview/loom:0.1.1"
 #let (weave, motif, ..) = loom.construct-loom(<app>)
 
 #let content-motif = motif.content

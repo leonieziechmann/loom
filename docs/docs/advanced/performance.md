@@ -14,7 +14,7 @@ This guide explains where that time goes and how to keep your documents fast.
 
 To give you a realistic idea of Loom's overhead, here are compilation times from our test suite.
 
-:::info The Verdict
+:::info
 Loom is **efficient at doing nothing** (skipping standard content) but **expensive when engaged** (processing logic).
 :::
 
@@ -33,8 +33,8 @@ Loom's performance profile is split into two distinct categories: **Traversal Ov
 
 Benchmarks show that Loom can traverse **30,000+ standard nodes** (like `text`, `block`, `place`) in roughly **1.7s**.
 
-:::tip Implication
-You do not need to worry about the length of your text chapters. Loom efficiently ignores content that isn't part of its system. A 50-page thesis full of standard paragraphs will not incur a significant penalty.
+:::tip
+You do not need to worry about the length of your text chapters. Loom efficiently ignores content that isn't part of its system. A 50-page thesis full of standard paragraphs will not incur a significant penalty. If you want to absolutely guarantee zero traversal overhead for a massive section, you can use the `static` motif (see Optimization Strategies below).
 :::
 
 ### 2. Reactivity is Expensive (The "Logic" Tax)
@@ -48,10 +48,11 @@ Think of Loom like a game engine. You have a "polygon budget" (Motifs) and a "te
 | Component Type     | Cost        | Recommended Budget                                          |
 | :----------------- | :---------- | :---------------------------------------------------------- |
 | **Standard Typst** | 🟢 Very Low | **Unlimited** (within Typst's own limits)                   |
+| **Static Motif**   | 🟢 Zero     | **Unlimited**. Counts as a single node, regardless of size. |
 | **Data Motifs**    | 🟡 Moderate | Use for structure (Sections, Ingredients), not data points. |
 | **Active Motifs**  | 🔴 High     | **< 500 per document.** Use sparingly for high-level logic. |
 
-:::warning Design Principle
+:::warning
 Loom is designed to manage the **skeleton** of your document (Sections, Headers, Totals). Do not use it to manage the **flesh** (individual table cells, list bullets, or character primitives).
 :::
 
@@ -70,7 +71,7 @@ Loom runs the `measure` phase in a loop.
 - **Default:** 2 Passes (1 Measure + 1 Draw).
 - **Complex:** If you set `max-passes: 5`, loom takes ~2.5x longer.
 
-:::tip Optimization Tip
+:::tip
 Keep `max-passes` as low as possible. Most documents only need 2 or 3 passes. Only increase it if you have deep dependency chains (e.g., A needs B, which needs C, which needs D).
 :::
 
@@ -85,7 +86,7 @@ Typst dictionaries are **immutable**. Every time you use `scope` to inject a var
 
 Loom's `intertwine` engine is recursive, and Typst has a fixed stack size. The limit is approximately **50-60 levels** of nesting.
 
-:::danger Stack Overflow
+:::danger
 If you nest components too deeply (e.g., `block > block > ... > block`), the compiler will panic.
 
 **Best Practice:** Flatten your structure where possible. Loom is designed for document architecture, not for rendering fractals or pixel-level grids.
@@ -93,14 +94,20 @@ If you nest components too deeply (e.g., `block > block > ... > block`), the com
 
 ## Optimization Strategies
 
-### 1. Use `data-motif` for Logic
+### 1. Wall Off Content with `static`
+
+If you are writing a huge document (like a textbook or a large specification) and you know a massive section contains no Loom logic, wrap it in a `#static[]` motif.
+
+To the Loom engine, a `#static` block **acts as exactly one node**, regardless of whether it contains 10 words or 10,000 paragraphs. It acts as an opaque wall, completely bypassing the engine's recursive traversal for everything inside it.
+
+### 2. Use `data-motif` for Logic
 
 If a component exists only to calculate data (like an `ingredient` or a `metadata` tag), always use `data-motif`.
 
 - It has no `draw` phase (returns `none` immediately), saving layout time in the final pass.
 - It avoids processing a `body` content block.
 
-### 2. Filter Early
+### 3. Filter Early
 
 In your `measure` function, use `query.select` or `query.find` to narrow down the children you process. Avoid mapping over _all_ `children` if you only need the "tasks".
 
@@ -112,7 +119,7 @@ In your `measure` function, use `query.select` or `query.find` to narrow down th
 #let everything = children.map(c => process-heavy-logic(c))
 ```
 
-### 3. Memoize Heavy Calculations
+### 4. Memoize Heavy Calculations
 
 If you have a heavy function (e.g., generating a complex chart), try to ensure it only runs in the **Final Draw Pass**, not during the Measure passes. The `measure` phase should only calculate _metadata_ (sizes, prices, counts).
 
@@ -125,11 +132,11 @@ draw: (ctx, _, view, _) => {
 }
 ```
 
-### 4. Stabilize Quickly (Convergence)
+### 5. Stabilize Quickly (Convergence)
 
 Ensure your signals stabilize as fast as possible.
 
-:::note Convergence
+:::note
 
 - **Bad:** A signal that toggles between `true` and `false` every pass. This forces Loom to run until `max-passes` is hit.
 - **Good:** A signal that settles on a value in Pass 2 and stays there.

@@ -8,7 +8,7 @@ sidebar_position: 5
 
 The `mutator` module provides a functional, transaction-based API for modifying Typst dictionaries.
 
-:::info Why use a Mutator?
+:::info
 While Typst variables are mutable within their scope, updating deeply nested structures often requires verbose "copy-modify-assign" patterns. The Mutator API abstracts this complexity, allowing you to describe a **transaction** of changes cleanly without manually reconstructing the dictionary hierarchy or writing repetitive update logic.
 :::
 
@@ -29,7 +29,7 @@ loom.mutator.batch(target, ops)
 | `target`  | `dictionary` | `none`   | Required                                                                                          |
 | `ops`     | `array`      | Required | A block or array of operation functions (created by `put`, `update`, etc.) to apply sequentially. |
 
-:::tip Syntax Sugar
+:::tip
 You can pass a code block `{ ... }` as the `ops` argument. Inside this block, simply call the operation functions. Typst automatically collects these calls into an array for the batch processor.
 :::
 
@@ -53,11 +53,11 @@ You can pass a code block `{ ... }` as the `ops` argument. Inside this block, si
 
 These functions generate **Operation Objects**. They define _what_ to do, but the change only happens when processed by `batch`.
 
-:::warning Context Usage
+:::warning
 These functions are not standalone. They must be used inside the `ops` list passed to a `batch` or `nest` call.
 :::
 
-:::tip Path Traversal
+:::tip
 Most operations accept an optional variable number of arguments (`..path`) before the `key` to traverse deeply into nested dictionaries without needing explicit `nest` calls.
 :::
 
@@ -112,7 +112,7 @@ derive(..path, key, value, default: none)
 
 Transforms an existing value using a callback function.
 
-:::warning Existing Keys Only
+:::warning
 The callback is only executed if the key **already exists** in the dictionary (and is not `none`). If the key is missing, this operation does nothing. Use `put` or `ensure` if you need to initialize values.
 :::
 
@@ -152,7 +152,7 @@ merge(..path, other-dictionary)
 | `path`             | `str`        | `()`     | Optional path of keys to traverse.              |
 | `other-dictionary` | `dictionary` | Required | The dictionary to merge into the current state. |
 
-:::warning Shallow Merge
+:::warning
 This operation performs a **shallow merge**. Nested dictionaries in `other-dictionary` will overwrite those in the state. For deep merging, use `merge-deep`.
 :::
 
@@ -169,7 +169,7 @@ merge-deep(..path, other-dictionary)
 | `path`             | `str`        | `()`     | Optional path of keys to traverse.                          |
 | `other-dictionary` | `dictionary` | Required | The dictionary to merge recursively into the current state. |
 
-:::tip Use Case
+:::tip
 Use `merge-deep` when you want to apply a configuration patch that contains nested settings without wiping out the existing sibling keys in those nested objects.
 :::
 

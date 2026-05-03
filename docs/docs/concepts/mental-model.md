@@ -16,10 +16,10 @@ Loom changes this by introducing **Time Travel** (or more technically, a multi-p
 
 Loom does not run your document once. It runs it in a loop, refining the data with each iteration until everything is stable. We call this the **Weave Loop**.
 
-1.  **Pass 1 (Discovery):** Loom runs your code. Components emit signals (prices, page numbers, headings). Loom collects them but draws nothing.
-2.  **Pass 2 (Reaction):** Loom runs your code again. This time, the signals from Pass 1 are injected into the global **Context**. Components can now read data from the "future" (or rather, the previous pass).
-3.  **Pass 3 (Stabilization):** If the reaction caused _new_ changes (e.g., the Table of Contents grew, pushing content to a new page), Loom runs again.
-4.  **Final Pass (Drawing):** Once the data stops changing (Convergence), Loom executes the final `draw` phase to produce the PDF.
+1. **Pass 1 (Discovery):** Loom runs your code. Components emit signals (prices, page numbers, headings). Loom collects them but draws nothing.
+2. **Pass 2 (Reaction):** Loom runs your code again. This time, the signals from Pass 1 are injected into the global **Context**. Components can now read data from the "future" (or rather, the previous pass).
+3. **Pass 3 (Stabilization):** If the reaction caused _new_ changes (e.g., the Table of Contents grew, pushing content to a new page), Loom runs again.
+4. **Final Pass (Drawing):** Once the data stops changing (Convergence), Loom executes the final `draw` phase to produce the PDF.
 
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': { 'fontSize': '12px'}, 'flowchart': {'rankSpacing': 25, 'nodeSpacing': 15, 'curve': 'basis'}}}%%
@@ -80,7 +80,7 @@ Once the children are done, the engine calls your `measure` function.
 
 At this point, Loom checks if the data is stable.
 
-:::info Smart Skipping
+:::info
 If the signals changed compared to the last pass, the engine **skips the Draw phase**. This saves performance by avoiding expensive layout calculations until the data has stabilized.
 :::
 
@@ -103,13 +103,13 @@ Finally, if we are in the render pass, the `draw` function is called.
 
 You can visualize the execution flow of a single component as a "V" shape, collecting data on the way up.
 
-:::tip The "V" Shape
+:::tip
 
-1.  **Down (Scope):** You prepare the Context.
-2.  **...Children Execute...** (They use your Scope, run their own V-shapes, and return signals).
-3.  **Up (Measure):** You receive their signals and calculate your own.
-4.  **Out (Draw):** You wrap their finished content.
-    :::
+1. **Down (Scope):** You prepare the Context.
+2. **...Children Execute...** (They use your Scope, run their own V-shapes, and return signals).
+3. **Up (Measure):** You receive their signals and calculate your own.
+4. **Out (Draw):** You wrap their finished content.
+   :::
 
 <center>
 ```mermaid

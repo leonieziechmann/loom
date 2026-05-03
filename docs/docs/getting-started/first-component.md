@@ -51,7 +51,7 @@ To define a visual component, we use the `content-motif` constructor. This is th
 
 Look at the `draw` function: `(ctx, evaluated-body) => ...`.
 
-:::info The Magic Backpack
+:::info
 The **`ctx` (Context)** parameter is available in almost every Loom lifecycle function. It contains all global state, theme configuration, and parent data. Even if you don't use it now, it's the bridge that connects your component to the rest of the system.
 :::
 
@@ -62,7 +62,7 @@ The **`ctx` (Context)** parameter is available in almost every Loom lifecycle fu
 
 You use a Motif exactly like a standard Typst function.
 
-:::danger Critical Step
+:::danger
 You **must** initialize the Loom engine at the start of your document using `#show: weave.with()`. If you skip this, your components will not render!
 :::
 
@@ -87,7 +87,7 @@ Because `content-motif` returns a standard Typst function, you can add as many a
 
 Let's add a `color` argument with a default value.
 
-:::note Closure Capturing
+:::note
 Notice that the `draw` function doesn't need `title` passed to it explicitly. Because `draw` is defined _inside_ the `note` function, it automatically captures those variables from the parent scope.
 :::
 
@@ -132,7 +132,7 @@ You might be thinking: _"I could have done this with a normal `#let` function in
 
 If you only care about styling, a normal function is fine! But by wrapping it in `content-motif`, you unlock Loom's superpowers.
 
-:::tip The Loom Advantage
+:::tip
 By using a Motif, your simple note box gains capabilities that standard functions lack:
 
 1. **Context Access:** It can automatically read `ctx.theme-color` without you passing it down manually.

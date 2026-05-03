@@ -8,7 +8,7 @@ sidebar_position: 4
 
 The `guards` module provides a set of assertion functions to enforce the structural integrity of your document. You use these inside the `measure` or `draw` functions of your components to ensure they are being used in the correct context.
 
-:::danger Critical Behavior
+:::danger
 If a guard fails, it will **panic** with a helpful error message, stopping the compilation immediately. Use guards only for requirements that are non-negotiable for your component's logic.
 :::
 

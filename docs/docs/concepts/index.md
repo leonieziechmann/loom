@@ -15,13 +15,13 @@ Loom code is **Cyclical**: it executes in loops (passes) to resolve dependencies
 
 To master Loom, you need to understand three key pillars:
 
-1.  **[The Mental Model](./concepts/mental-model)**
-    How Loom treats your document as a tree of "Smart Components" rather than just a stream of text. Learn about the **Measure** and **Draw** phases.
+1. **[The Mental Model](./concepts/mental-model)**
+   How Loom treats your document as a tree of "Smart Components" rather than just a stream of text. Learn about the **Measure** and **Draw** phases.
 
-2.  **[Data Flow](./concepts/data-flow)**
-    How information moves through the system.
-    - **Context (Down):** Configuration, Theme, State.
-    - **Signals (Up):** Data, Metadata, Aggregations.
+2. **[Data Flow](./concepts/data-flow)**
+   How information moves through the system.
+   - **Context (Down):** Configuration, Theme, State.
+   - **Signals (Up):** Data, Metadata, Aggregations.
 
 ## Summary of Terms
 

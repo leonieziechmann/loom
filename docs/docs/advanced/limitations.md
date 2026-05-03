@@ -15,8 +15,8 @@ This is the most common "Gotcha" for new users.
 **The Constraint:**
 Data in Loom flows strictly **Vertically**:
 
-1.  Down (Scope)
-2.  Up (Signals)
+1. Down (Scope)
+2. Up (Signals)
 
 **Sibling components (neighbors) cannot talk to each other directly in the same pass.**
 If Component A calculates a value, Component B (sitting next to it) cannot see it immediately. A signal must travel all the way up to the **Document Root** to be collected by the engine and reinjected into the Context for the _next_ pass.
@@ -24,9 +24,9 @@ If Component A calculates a value, Component B (sitting next to it) cannot see i
 **The Workaround:**
 You must rely on **Time Travel** (Multiple Passes).
 
-1.  **Pass 1:** Sibling A emits a signal. It bubbles up through the parent to the **Root**.
-2.  **Pass 2:** The `weave` function injects this signal into the Global Context.
-3.  **Result:** Sibling B reads the data from `ctx`.
+1. **Pass 1:** Sibling A emits a signal. It bubbles up through the parent to the **Root**.
+2. **Pass 2:** The `weave` function injects this signal into the Global Context.
+3. **Result:** Sibling B reads the data from `ctx`.
 
 _Note: This "Root Round-Trip" is why complex dependencies require more passes._
 

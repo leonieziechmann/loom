@@ -100,7 +100,7 @@ query.collect-signals(children, kind: none, depth: 10)
 - `collect`: `array<frame>`
 - `collect-signals`: `array<any>`
 
-:::info "Ghost" Nodes
+:::info
 These functions automatically filter out non-frame data found in signals (e.g., strings or config objects) during traversal to ensure they only recurse into valid component frames.
 :::
 

@@ -32,7 +32,7 @@ This turns a "runtime bug" into a "usage instruction."
 The most common check is enforcing parent-child relationships.
 
 ```typ
-#import "@preview/loom:0.1.0": *
+#import "@preview/loom:0.1.1": *
 #let (motif, weave, context, guards) = construct-loom(<my-lib>)
 
 // CHILD: Ingredient

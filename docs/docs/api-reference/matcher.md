@@ -8,7 +8,7 @@ sidebar_position: 7
 
 The `matcher` module provides a robust structural validation system. It allows you to check if data matches a specific shape, type, or set of values using a "By Example" syntax or descriptive helpers.
 
-:::info Mental Model
+:::info
 The Matcher distinguishes between **Fixed Shapes** (defined by syntax like arrays and dictionaries) and **Open Collections** (defined by helpers like `many` or `dict`).
 :::
 
@@ -59,7 +59,7 @@ matcher.match("foo", "foo")  // true
 matcher.match(auto, auto)    // true
 ```
 
-:::note Controlling Specificity
+:::note
 If you need to be more specific (e.g., "Must be a number, not the type `int`" or "Must be the type object `int` exactly"), use the **[Strict Descriptors](#strict-descriptors-types)** `instance` and `exact` documented below.
 :::
 
@@ -88,7 +88,7 @@ matcher.match((name: "Alice", id: 1), user) // true
 matcher.match((name: "Alice"), user)        // false (missing key)
 ```
 
-:::tip Partial Matches
+:::tip
 By default, `match` allows extra keys in dictionaries (partial matching). To forbid unknown keys, pass `strict: true` to the function or the `switch` case.
 :::
 
@@ -214,7 +214,7 @@ matcher.switch(target, cases)
 
 Defines a single branch in a switch statement.
 
-:::warning Lazy Evaluation
+:::warning
 Unlike a standard switch statement where you provide a static output value, `case` requires a **Transformation Function**.
 
 This ensures **Lazy Evaluation**. Typst evaluates function arguments eagerly; passing a transformation function ensures code is only executed _after_ the pattern matches, preventing runtime errors on mismatched data types.
