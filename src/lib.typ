@@ -16,26 +16,26 @@
  */
 
 // --- CORE ENGINE ---
-#import "src/public/factory.typ"
-#import "src/public/core.typ"
+#import "public/factory.typ"
+#import "public/core.typ"
 
 // --- DATA MODEL ---
-#import "src/public/frame.typ"
-#import "src/public/path.typ"
-#import "src/public/primitives.typ"
+#import "public/frame.typ"
+#import "public/path.typ"
+#import "public/primitives.typ"
 
 // --- UTILITIES ---
-#import "src/public/query.typ"
-#import "src/public/guards.typ"
-#import "src/public/mutator.typ"
-#import "src/public/matcher.typ"
-#import "src/public/collection.typ"
+#import "public/query.typ"
+#import "public/guards.typ"
+#import "public/mutator.typ"
+#import "public/matcher.typ"
+#import "public/collection.typ"
 
 /// The primary entry point for creating a Loom instance.
 ///
 /// # Example
 /// ```typ
-/// #import "@preview/loom:0.1.0": construct-loom
+/// #import "@preview/loom:0.1.1": construct-loom
 /// #let loom = construct-loom(<my-project>)
 /// ```
 ///

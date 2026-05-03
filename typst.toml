@@ -1,7 +1,7 @@
 [package]
 name = "loom"
 version = "0.1.1"
-entrypoint = "lib.typ"
+entrypoint = "src/lib.typ"
 authors = ["Leonie Ziechmann"]
 license = "MIT"
 description = "A meta-engine for reactive documents, bidirectional data flow, and global state management."
@@ -10,4 +10,4 @@ homepage = "https://leonieziechmann.github.io/loom"
 keywords = ["reactive", "state-management", "data-flow", "components", "meta-engine"]
 categories = ["components", "scripting", "utility"]
 compiler = "0.14.0"
-exclude = ["/docs", "/tests", "/showcase", "flake.nix", "flake.lock", ".gitignore", ".envrc"]
+exclude = []

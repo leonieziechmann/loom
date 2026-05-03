@@ -28,7 +28,7 @@
           pname = toml.package.name;
           version = toml.package.version;
           src = ./.;
-          files = [ "typst.toml" "lib.typ" "src" "LICENSE" ];
+          files = [ "typst.toml" "src" "LICENSE" ];
         };
 
         typstEnv = typst-utils.lib.mkTypstEnv {

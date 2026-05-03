@@ -9,6 +9,6 @@ jobs:
     uses: leonieziechmann/typst-nix-utils/.github/workflows/publish-package.yaml@main
     with:
       fork_repo: leonieziechmann/packages
-      files: "typst.toml lib.typ src LICENSE README.md"
+      files: "typst.toml src LICENSE README.md"
     secrets:
       packages_pat: ${{ secrets.PACKAGES_PAT }}

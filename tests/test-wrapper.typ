@@ -1,4 +1,4 @@
-#import "/lib.typ" as loom
+#import "/src/lib.typ" as loom
 #import loom: *
 
 
