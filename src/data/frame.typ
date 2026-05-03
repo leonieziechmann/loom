@@ -65,9 +65,7 @@
   if not type(data) == dictionary { return false }
   if not data.at("type", default: none) == "frame" { return false }
 
-  ("type", "kind", "key", "path", "signal", "sys")
-    .map(f => f in data)
-    .fold(true, (acc, x) => acc and x)
+  ("type", "kind", "key", "path", "signal", "sys").all(f => f in data)
 }
 
 /// Merges additional system fields into an existing frame.

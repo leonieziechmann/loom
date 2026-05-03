@@ -40,7 +40,7 @@
   let final-measure = if measure == none {
     (ctx, children) => (none, none)
   } else { measure }
-  let final-draw = if draw == none { (ctx, p, v, body) => body } else { draw }
+  let final-draw = if draw == none { (.., body) => body } else { draw }
 
   [#metadata((
       type: "component",
@@ -250,7 +250,7 @@
 #let data-motif(
   /// The namespace key.
   /// -> label
-  key: <component>,
+  key: <motif>,
   /// The name/kind of the data node.
   /// -> str
   name,
@@ -290,7 +290,7 @@
 #let content-motif(
   /// The namespace key.
   /// -> label
-  key: <component>,
+  key: <motif>,
   /// Function `ctx => ctx`.
   /// -> function
   scope: ctx => ctx,

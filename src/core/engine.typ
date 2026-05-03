@@ -17,7 +17,7 @@
  */
 
 #import "../data/frame.typ"
-#import "context.typ": get-system-field, set-system-fields
+#import "context.typ": get-system-field
 
 
 /// Checks if a content node is a registered Loom component.
@@ -87,7 +87,7 @@
     // Allow the component to modify the context for its children.
     // This happens before we visit the children.
     let child-ctx = (component.scope)(ctx)
-    child-ctx = set-system-fields(child-ctx, relative-id: 0)
+    child-ctx.sys.insert("relative-id", 0)
 
     // 2. AUTO-TRAVERSAL
     // The engine automatically visits the body with the new context.
@@ -135,7 +135,8 @@
       .children
       .enumerate()
       .map(((i, child)) => {
-        let inner-ctx = set-system-fields(ctx, relative-id: i)
+        let inner-ctx = ctx
+        inner-ctx.sys.insert("relative-id", i)
         let result = intertwine(inner-ctx, child, key: key, draw: draw)
         result
       })
