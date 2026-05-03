@@ -52,5 +52,6 @@
   prebuild-motif: (
     debug: motifs.debug-motif.with(key: key),
     apply: motifs.apply-motif.with(key: key),
+    static: motifs.static-motif.with(key: key),
   ),
 )

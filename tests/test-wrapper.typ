@@ -1,16 +1,24 @@
 #import "/src/lib.typ" as loom
 #import loom: *
 
+// 1. Construct a unique instance for your project.
+// The key (<my-project>) isolates your components from other libraries.
+#let (weave, motif, prebuild-motif) = loom.construct-loom(<loom-test>)
 
-#let test-loom = construct-loom(<loom-test>)
+// 2. Export the specific tools you want to use.
+// This keeps your API clean for the rest of your document.
 
-#let weave = test-loom.weave
+// The Engine
+#let weave = weave
 
-#let motif = test-loom.motif.plain
-#let managed-motif = test-loom.motif.managed
-#let compute-motif = test-loom.motif.compute
-#let data-motif = test-loom.motif.data
-#let content-motif = test-loom.motif.content
+// The Component Constructors
+#let managed-motif = motif.managed
+#let compute-motif = motif.compute
+#let content-motif = motif.content
+#let data-motif = motif.data
+#let motif = motif.plain
 
-#let debug = test-loom.prebuild-motif.debug
-#let apply = test-loom.prebuild-motif.apply
+// Prebuild Motifs
+#let apply = prebuild-motif.apply
+#let debug = prebuild-motif.debug
+#let static = prebuild-motif.static

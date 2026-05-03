@@ -107,3 +107,24 @@
     body,
   )
 }
+
+/// Defines a static motif that is rendered directly to the page but is
+/// ignored by the weave loop logic.
+///
+/// Use this for decorative elements or layout markers that should not
+/// participate in the dynamic weaving process.
+///
+/// - key (label): A unique identifier for the motif. Defaults to `<motif>`.
+/// - body (content): The visual content or elements to be rendered.
+///
+/// -> content
+#let static-motif(
+  key: <motif>,
+  body,
+) = {
+  motif(
+    key: key,
+    draw: (..) => body,
+    none,
+  )
+}
