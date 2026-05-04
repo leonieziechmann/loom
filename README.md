@@ -4,53 +4,27 @@
 
 **Reactive Documents for Typst**
 
-Loom transforms Typst from a linear typesetting system into a **reactive engine**. It enables bidirectional data flow, allowing your document to "think" before it renders.
+Loom transforms Typst from a linear typesetting system into a **reactive engine**. It enables bidirectional data flow, allowing your document to "think" before it renders[cite: 1].
 
-## Why Loom?
-
-Typst is built for speed and linear execution, which makes certain logic patterns difficult. Loom solves two specific architectural headaches:
-
-1.  **The "Shopping List" Problem (Aggregation):**
-    - _The Pain:_ A parent component (like a `Recipe`) cannot naturally calculate a total (Price, Calories) from its children (`Ingredients`) because the children typically render _after_ the parent has started.
-    - _The Fix:_ Loom lets children emit **Signals** that bubble up. The parent receives this data _before_ it draws the final output.
-
-2.  **The "Global State" Problem (Dependencies):**
-    - _The Pain:_ Modifying a global counter or configuration from deep inside a nested structure is hard due to Typst's immutable state and linear flow.
-    - _The Fix:_ Loom runs a **Weave Loop** (multiple passes). A component at the bottom of page 10 can emit a signal that updates a summary on page 1.
+📖 **[Read the Documentation](https://leonieziechmann.github.io/loom/)**
 
 ---
 
-## ⚡ Performance: The "Budget" Rule
+## Why Loom?
 
-Loom brings "Time Travel" to Typst, but this comes at a cost. To keep your documents fast, follow the **10% Rule**:
+Typst's linear execution makes complex architectural patterns difficult. Loom solves two primary headaches:
 
-> **Loom is for Structure, not Content.**
+- **Aggregation:** Children emit **Signals** that bubble up, allowing parents to calculate data (like total prices or calories) _before_ rendering the final output.
+- **Global Dependencies:** Through a **Weave Loop** (multiple passes), a component at the end of the document can update a summary or counter on page one.
 
-- **🟢 Traversal is Cheap:** Loom can traverse **30,000+ standard nodes** (paragraphs, shapes, text) in ~1.7s. You can write long theses without penalty.
-- **🟡 Logic is Moderate:** "Active" Loom components (Context mutations, Signals) have overhead. In stress tests, 2,000 active components slowed compilation to **~1.2s** (previously ~8s).
-
-**Verdict:** Use Loom to manage your document's skeleton (Sections, Headers, Totals), but do not use it for the flesh (individual table cells, list bullets, or thousands of data points).
+---
 
 ## Installation
 
-Import Loom from the package preview:
+Import Loom **v0.1.1** from the package preview:
 
 ```typ
-#import "@preview/loom:0.1.0": construct-loom
-```
-
-## 🚀 Quick Start (Best Practice)
-
-To prevent namespace collisions and keep your code clean, we recommend the **Wrapper Pattern**.
-
-### 1. Create a Library File (`loom-wrapper.typ`)
-
-Initialize Loom once with a unique project key and export the specific tools you need.
-
-```typ
-// loom-wrapper.typ
-#import "@preview/loom:0.1.0"
-#import loom: query, guards, mutator, matcher, collection
+#import "@preview/loom:0.1.1"
 
 // 1. Construct a unique instance for your project.
 // The key (<my-project>) isolates your components from other libraries.
@@ -72,32 +46,31 @@ Initialize Loom once with a unique project key and export the specific tools you
 // Prebuild Motifs
 #let apply = prebuild-motif.apply
 #let debug = prebuild-motif.debug
+#let static = prebuild-motif.static
 ```
 
-### 2. Build your Document (`main.typ`)
+---
+
+## Quick Start
 
 ```typ
-// main.typ
-#import "loom-wrapper.typ": *
+#import "@preview/loom:0.1.1"
 
-// A component that reports data to its parent (No visual output)
-#let ingredient(price) = data-motif(
-  "ingredient",
-  measure: (ctx) => (price: price)
-)
+// 1. Initialize Loom
+#let (weave, motif) = loom.construct-loom(<my-project>)
 
-// A parent that sums up the data from its children
-#let recipe(name, body) = motif(
-  measure: (ctx, children-data) => {
-    let total = children-data.map(c => c.signal.price).sum()
-    ( none, (price: total) )
+// 2. Define a data-emitting component
+#let ingredient(price) = (motif.data)("ing", measure: _ => (price: price))
+
+// 3. Define a parent that sums child data
+#let recipe(name, body) = (motif.plain)(
+  measure: (ctx, children) => {
+    let total = loom.query.sum-signals(children, "price")
+    (none, (price: total))
   },
-  draw: (ctx, public, view, body) => {
-    block(stroke: 1pt + black, inset: 1em)[
-      *#name* (Total: \$#view.price)
-      #body
-    ]
-  },
+  draw: (ctx, public, view, body) => block[
+    *#name* (Total: \$#view.price) \ #body
+  ],
   body
 )
 
@@ -105,28 +78,39 @@ Initialize Loom once with a unique project key and export the specific tools you
 
 #recipe("Tomato Soup")[
   #ingredient(2.50)
-  #ingredient(0.50)
-  #ingredient(1.00)
+  #ingredient(1.50)
   Ingredients listed here...
 ]
 ```
 
-## 🧠 Core Concepts
+---
 
-| Concept     | Direction | Description                                                                                     |
-| ----------- | --------- | ----------------------------------------------------------------------------------------------- |
-| **Scope**   | ⬇️ Down   | **Context.** Parents inject variables (themes, flags) that are inherited by all descendants.    |
-| **Signals** | ⬆️ Up     | **Aggregation.** Children emit data "frames" that bubble up to their parents for summarization. |
-| **Weave**   | 🔄 Loop   | **Convergence.** The engine runs multiple passes (Measure → Draw) until data stabilizes.        |
+## Real-World Usage
 
-## ⚠️ Capabilities & Limits
+For a complex implementation, see **[invoice-pro](https://github.com/leonieziechmann/invoice-pro)**, an invoicing template that utilizes Loom for heavy data aggregation.
 
-Loom operates within the boundaries of the Typst runtime.
+---
 
-1. **Vertical-Only Flow:** Data flows `Child -> Parent -> Context`. Sibling components cannot "see" each other in the same pass; data must go up to a common ancestor and back down in the next pass.
-2. **Stack Depth:** Recursion is limited to approximately **50 levels**. Avoid deeply nested `div > div > div` structures; flatten your hierarchy where possible.
-3. **Opaque Fields:** Loom cannot "see" inside named arguments like `figure(caption: [here])`. Components placed inside captions or headers will render visually but cannot participate in the logic loop.
-4. **Show Rules:** Standard `#show` rules run _after_ Loom's logic. You cannot use a show rule to transform text into a Loom component.
+## Core Concepts
+
+Detailed explanations are available in the **[Concepts Documentation](https://leonieziechmann.github.io/loom/concepts)**.
+
+| Concept                                                                       | Direction | Description                                                                    |
+| :---------------------------------------------------------------------------- | :-------- | :----------------------------------------------------------------------------- |
+| **[Scope](https://leonieziechmann.github.io/loom/concepts/state-management)** | ⬇️ Down   | **Context.** Parents inject variables inherited by all descendants.            |
+| **[Signals](https://leonieziechmann.github.io/loom/concepts/data-flow)**      | ⬆️ Up     | **Aggregation.** Children emit data "frames" that bubble up for summarization. |
+| **[Weave](https://leonieziechmann.github.io/loom/concepts/mental-model)**     | 🔄 Loop   | **Convergence.** The engine runs multiple passes until data stabilizes.        |
+
+---
+
+## Limitations
+
+Loom operates within the specific boundaries of the Typst runtime. Review the full **[Limitations Guide](https://leonieziechmann.github.io/loom/advanced/limitations)** for more details.
+
+- **Vertical-Only Flow:** Data flows `Child -> Parent`. Sibling components cannot see each other in the same pass.
+- **Stack Depth:** Recursion is limited to approximately **50 levels**.
+- **Opaque Fields:** Loom cannot see inside named arguments like `figure(caption: [...])`.
+- **Show Rules:** Standard `#show` rules run _after_ Loom's logic and cannot transform text into Loom components.
 
 ## License
 
