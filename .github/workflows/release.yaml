@@ -26,7 +26,6 @@ jobs:
           cp typst.toml "$PACKAGE_DIR/"
           cp README.md "$PACKAGE_DIR/"
           cp LICENSE "$PACKAGE_DIR/"
-          cp lib.typ "$PACKAGE_DIR/"
           cp -r src "$PACKAGE_DIR/"
 
           # Create the tarball
